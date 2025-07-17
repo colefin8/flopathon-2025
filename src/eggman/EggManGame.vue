@@ -1,15 +1,17 @@
 <script setup>
 import { ref } from 'vue'
 import VolumeSlider from './VolumeSlider.vue'
+import Note from './Note.vue'
 
 const volume = ref(20);
 </script>
 
 <template>
   <div id="eggmangame">
-    <div class="container">
+    <div class="container fancy-border">
       <h1 class="title">FEED EGGS</h1>
       <VolumeSlider :volume="volume" class="volume-area" />
+      <Note :volume="volume" class="note-area" />
     </div>
   </div>
 </template>
@@ -35,6 +37,42 @@ const volume = ref(20);
     --off-white: #EDEDED;
     --header-height: 33px;
     --line-width: 3px;
+  }
+
+  .fancy-border {
+    --fancy-border-height: 24px;
+    --fancy-border-bg: var(--light-grey);
+    position: relative;
+    padding-top: var(--fancy-border-height);
+  }
+
+  .fancy-border::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: calc(-1 * var(--line-width));
+    right: calc(-1 * var(--line-width));
+    height: var(--fancy-border-height);
+    background: 
+      linear-gradient(to right, var(--fancy-border-bg) 0%, var(--fancy-border-bg) 5px, transparent 5px, transparent calc(100% - 5px), var(--fancy-border-bg) calc(100% - 5px), var(--fancy-border-bg) 100%),
+      linear-gradient(
+        to bottom,
+        var(--fancy-border-bg) 0%,
+        var(--fancy-border-bg) 20%,
+        black 20%,
+        black 32.5%,
+        var(--fancy-border-bg) 32.5%,
+        var(--fancy-border-bg) 43.75%,
+        black 43.75%,
+        black 56.25%,
+        var(--fancy-border-bg) 56.25%,
+        var(--fancy-border-bg) 67.5%,
+        black 67.5%,
+        black 80%,
+        var(--fancy-border-bg) 80%,
+        var(--fancy-border-bg) 100%
+      );
+    border: var(--line-width) solid black;
   }
 
   header {
@@ -81,42 +119,14 @@ const volume = ref(20);
                          "volume"
                          "note"
                          "interactive";
-    grid-template-rows: 129px 1fr 1fr 1fr;
+    grid-template-rows: 134px auto auto 1fr;
     justify-content: center;
     justify-items: center;
     border-left: var(--line-width) solid black;
     border-right: var(--line-width) solid black;
     border-bottom: var(--line-width) solid black;
-    padding-top: var(--fancy-border-height);
-  }
-
-  .container::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: calc(-1 * var(--line-width));
-    right: calc(-1 * var(--line-width));
-    height: var(--fancy-border-height);
-    background: 
-      linear-gradient(to right, #D7D7D7 0%, #D7D7D7 5px, transparent 5px, transparent calc(100% - 5px), #D7D7D7 calc(100% - 5px), #D7D7D7 100%),
-      linear-gradient(
-        to bottom,
-        #D7D7D7 0%,
-        #D7D7D7 20%,
-        black 20%,
-        black 32.5%,
-        #D7D7D7 32.5%,
-        #D7D7D7 43.75%,
-        black 43.75%,
-        black 56.25%,
-        #D7D7D7 56.25%,
-        #D7D7D7 67.5%,
-        black 67.5%,
-        black 80%,
-        #D7D7D7 80%,
-        #D7D7D7 100%
-      );
-    border: var(--line-width) solid black;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
   }
 
   .title {
@@ -130,6 +140,12 @@ const volume = ref(20);
 
   .volume-area {
     grid-area: volume;
+    align-self: start;
+  }
+
+  .note-area {
+    grid-area: note;
+    margin-top: 17px;
     align-self: start;
   }
 </style>
