@@ -1,10 +1,24 @@
 <script setup>
-import { ref } from 'vue'
-import VolumeSlider from './VolumeSlider.vue'
-import Note from './Note.vue'
+import { ref, onMounted } from 'vue';
+import VolumeSlider from './VolumeSlider.vue';
+import Note from './Note.vue';
+import { Rive } from "@rive-app/canvas";
 
 const volume = ref(50);
 const eggCount = ref(20);
+const canvasRef = ref(null);
+
+onMounted(() => {
+  const r = new Rive({
+        src: "public/eggman.riv",
+        canvas: canvasRef.value,
+        autoplay: true,
+        stateMachines: "State Machine 1",
+        onLoad: () => {
+          r.resizeDrawingSurfaceToCanvas();
+        },
+    });
+});
 </script>
 
 <template>
@@ -14,6 +28,9 @@ const eggCount = ref(20);
       <VolumeSlider :volume="volume" class="volume-area" />
       <Note :volume="volume" class="note-area" />
       <div class="interactive-area">
+        <!-- eggman -->
+        <canvas id="eggman" ref="canvasRef" width="175" height="175"></canvas>
+
         <div class="basket-area">
           <svg class="eggs" width="87" height="53" viewBox="0 0 87 53" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M30.8869 7.85281C36.6947 10.1342 39.1816 18.1904 36.1065 26.0189C33.0313 33.8474 25.7261 38.0571 19.9184 35.7757C14.1106 33.4944 11.6237 25.4382 14.6989 17.6097C17.774 9.78114 25.0792 5.57142 30.8869 7.85281Z" fill="#EDEDED" stroke="black"/>
@@ -190,6 +207,12 @@ const eggCount = ref(20);
     width: 100%;
     height: calc(100% - var(--interactive-margin));
     position: relative;
+  }
+
+  #eggman {
+    position: absolute;
+    bottom: 119px;
+    left: 30px;
   }
 
   .basket-area {
