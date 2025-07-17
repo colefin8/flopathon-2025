@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import VolumeSlider from './VolumeSlider.vue'
 
-const volume = ref(0);
+const volume = ref(20);
 </script>
 
 <template>
@@ -33,6 +33,7 @@ const volume = ref(0);
     padding: 0;
     --header-height: 33px;
     --light-grey: #D7D7D7;
+    --line-width: 3px;
   }
 
   header {
@@ -58,6 +59,7 @@ const volume = ref(0);
 
 <style scoped>
   #eggmangame {
+    --fancy-border-height: 24px;
     height: calc(100% - var(--header-height));
     width: 100%;
     margin-top: 33px;
@@ -81,7 +83,39 @@ const volume = ref(0);
     grid-template-rows: 129px 1fr 1fr 1fr;
     justify-content: center;
     justify-items: center;
-    border: 1px solid black;
+    border-left: var(--line-width) solid black;
+    border-right: var(--line-width) solid black;
+    border-bottom: var(--line-width) solid black;
+    padding-top: var(--fancy-border-height);
+  }
+
+  .container::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: calc(-1 * var(--line-width));
+    right: calc(-1 * var(--line-width));
+    height: var(--fancy-border-height);
+    background: 
+      linear-gradient(to right, #D7D7D7 0%, #D7D7D7 5px, transparent 5px, transparent calc(100% - 5px), #D7D7D7 calc(100% - 5px), #D7D7D7 100%),
+      linear-gradient(
+        to bottom,
+        #D7D7D7 0%,
+        #D7D7D7 20%,
+        black 20%,
+        black 32.5%,
+        #D7D7D7 32.5%,
+        #D7D7D7 43.75%,
+        black 43.75%,
+        black 56.25%,
+        #D7D7D7 56.25%,
+        #D7D7D7 67.5%,
+        black 67.5%,
+        black 80%,
+        #D7D7D7 80%,
+        #D7D7D7 100%
+      );
+    border: var(--line-width) solid black;
   }
 
   .title {
