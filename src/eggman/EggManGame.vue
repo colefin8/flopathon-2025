@@ -31,8 +31,9 @@ const volume = ref(20);
   :root {
     margin: 0;
     padding: 0;
-    --header-height: 33px;
     --light-grey: #D7D7D7;
+    --off-white: #EDEDED;
+    --header-height: 33px;
     --line-width: 3px;
   }
 
