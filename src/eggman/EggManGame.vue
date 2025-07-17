@@ -4,13 +4,20 @@
 <template>
   <div id="eggmangame">
     <div class="container">
-      <h1>FEED EGGS</h1>
+      <h1 class="title">FEED EGGS</h1>
 
     </div>
   </div>
 </template>
 
 <style>
+  @font-face {
+    font-family: 'Press Start 2P';
+    src: url('../assets/PressStart2P-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+  }
+
   :root {
     margin: 0;
     padding: 0;
@@ -61,5 +68,10 @@
     right: var(--container-margin);
     background: var(--light-grey);
     border: 1px solid black;
+  }
+
+  .title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 20px;
   }
 </style>
