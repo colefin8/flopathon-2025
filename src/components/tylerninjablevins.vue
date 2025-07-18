@@ -63,6 +63,9 @@ const selectedVolumeIndex = ref(null);
 const airhornSound = ref(null);
 const vineboomSound = ref(null);
 const lowTaperFadeSound = ref(null);
+const chachingSound = ref(null);
+const wrongSound = ref(null);
+const explosionSound = ref(null);
 
 const blevsterImages = ref([
   '/Blevsters/TheBlevster.jpg',
@@ -73,7 +76,7 @@ const blevsterImages = ref([
 ]);
 const currentBlevsterImageIndex = ref(0);
 
-// Inactivity timer with popup
+// // Inactivity timer with popup
 let inactivityTimer = null;
 const showAngryBlevPopup = ref(false);
 const notEnoughMovementSound = ref(null);
@@ -179,6 +182,7 @@ function getVolumeRarity(volumeLevel) {
 // Lootbox
 const isOpening = ref(false);
 const openedItem = ref([]);
+const showConfetti = ref(false);
 
 function openLootBox() {
   if (isOpening.value) return;
@@ -242,7 +246,18 @@ function openLootBox() {
     }
     openedItem.value = items; // Show the revealed items
     isOpening.value = false;
-
+    // Show confetti explosion
+    showConfetti.value = true;
+    setTimeout(() => {
+      showConfetti.value = false;
+    }, 2000);
+    // Play explosion sound 2.5s after button click (0.5s after confetti starts)
+    setTimeout(() => {
+      if (explosionSound.value) {
+        explosionSound.value.currentTime = 0;
+        explosionSound.value.play();
+      }
+    }, 500);
     // Reset after showing the item for a bit
     setTimeout(() => {
       openedItem.value = [];
@@ -264,6 +279,10 @@ function buyBlevKey() {
         icon: '🔑',
         itemType: ITEM_TYPES.KEY,
     });
+    if (chachingSound.value) {
+      chachingSound.value.currentTime = 0;
+      chachingSound.value.play();
+    }
   } else {
     alert("Not enough Blev Coins to buy a key!");
   }
@@ -282,6 +301,10 @@ function buyLootbox() {
         icon: '🎁',
         itemType: ITEM_TYPES.LOOTBOX,
     });
+    if (chachingSound.value) {
+      chachingSound.value.currentTime = 0;
+      chachingSound.value.play();
+    }
   } else {
     alert("Not enough Blev Coins to buy a loot box!");
   }
@@ -291,6 +314,10 @@ function buyBackpackExpansion() {
   if (blevCoins.value >= 100) {
     blevCoins.value -= 100;
     expandBackpack();
+    if (chachingSound.value) {
+      chachingSound.value.currentTime = 0;
+      chachingSound.value.play();
+    }
   } else {
     alert("Not enough Blev Coins to expand the backpack!");
   }
@@ -378,6 +405,10 @@ const currentQuestionIndex = ref(0);
 function nextQuestion() {
   const answer = questions[currentQuestionIndex.value].model.value.trim();
   if (!answer) {
+    if (wrongSound.value) {
+      wrongSound.value.currentTime = 0;
+      wrongSound.value.play();
+    }
     alert('Please enter an answer before continuing.');
     return;
   }
@@ -411,9 +442,34 @@ function submitAnswers() {
     alert('Please fill out at least one answer.');
   }
 }
+
+function confettiStyle(n) {
+  const colors = ['#f6e05e', '#4299e1', '#dd6b20', '#8b5cf6', '#10b981', '#ff2e2e'];
+  const left = Math.random() * 100;
+  const top = Math.random() * 100;
+  const rotate = Math.random() * 360;
+  const size = 8 + Math.random() * 12;
+  const color = colors[n % colors.length];
+  const duration = 1.2 + Math.random() * 0.8;
+  return {
+    position: 'absolute',
+    left: left + '%',
+    top: top + '%',
+    width: size + 'px',
+    height: size + 'px',
+    background: color,
+    borderRadius: '2px',
+    transform: `rotate(${rotate}deg)`,
+    animation: `confetti-fall ${duration}s ease-out forwards`,
+    opacity: 0.85
+  };
+}
 </script>
 
 <template>
+  <div v-if="showConfetti" class="confetti-explosion">
+    <div class="confetti-piece" v-for="n in 40" :key="n" :style="confettiStyle(n)"></div>
+  </div>
   <div v-if="showAngryBlevPopup" class="angry-blev-popup">
     <img src="/ANGRYBLEV.jpg" alt="Angry Blev" class="angry-blev-img" />
     <div class="angry-blev-text">I'M NOT SEEING ENOUGH MOVEMENT</div>
@@ -519,7 +575,8 @@ function submitAnswers() {
             </div>
         </div>
         <div class="blevster-container">
-            <div @click="blevsterClick" class="blevster-image" :style="{ backgroundImage: `url(${blevsterImages[currentBlevsterImageIndex]})` }"></div>
+          <div class="blevster-instruction" style="text-align:center; color:#f6e05e; font-weight:700; margin-top:0.5rem; font-size:1.1rem;">Click Me for Blev Coins!</div>
+          <div @click="blevsterClick" class="blevster-image" :style="{ backgroundImage: `url(${blevsterImages[currentBlevsterImageIndex]})` }"></div>
         </div>
     </div>
     <div class="right-column">
@@ -558,14 +615,38 @@ function submitAnswers() {
         </div>
     </div>
   </div>
+  <div v-if="showConfetti" class="confetti-container">
+    <div v-for="n in 30" :key="n" class="confetti-piece" :style="confettiStyle(n)"></div>
+  </div>
   <audio ref="airhornSound" src="/Audio/airhorn.mp3" preload="auto"></audio>
   <audio ref="vineboomSound" src="/Audio/vineboom.mp3" preload="auto"></audio>
   <audio ref="lowTaperFadeSound" src="/Audio/imagine-if-ninja-got-a-low-taper-fade.mp3" preload="auto"></audio>
+  <audio ref="chachingSound" src="/Audio/chaching.mp3" preload="auto"></audio>
+  <audio ref="wrongSound" src="/Audio/WRONG.mp3" preload="auto"></audio>
+  <audio ref="explosionSound" src="/Audio/EXPLOSION.mp3" preload="auto"></audio>
   <audio ref="notEnoughMovementSound" src="/Audio/ninja-im-not-seeing-enough-movement.mp3" preload="auto"></audio>
 </template>
 
 
 <style scoped>
+@keyframes confetti-fall {
+  0% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(120px) scale(0.7) rotate(360deg); }
+}
+.confetti-explosion {
+  pointer-events: none;
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 99999;
+}
+.confetti-piece {
+  box-shadow: 0 0 8px 2px #fff2;
+}
+
 .angry-blev-popup {
   position: fixed;
   top: 0;
@@ -981,6 +1062,8 @@ function submitAnswers() {
 
 .blevster-container {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
   margin-top: 2rem;
 }
@@ -1046,6 +1129,35 @@ function submitAnswers() {
   border-radius: 0.5rem;
   padding: 0.75rem;
   font-size: 1rem;
+}
+
+.confetti-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 9998;
+}
+
+.confetti-piece {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: #f6e05e;
+  opacity: 0.9;
+  animation: confetti-fall 1.2s ease-out forwards;
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(0) rotate(0);
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+  }
 }
 </style>
 
