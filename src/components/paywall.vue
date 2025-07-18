@@ -176,8 +176,8 @@ export default {
   name: 'PaywallSlider',
   data() {
     return {
-      currentVolume: 50,
-      desiredVolume: 60,
+      currentVolume: 20,
+      desiredVolume: 25,
       processingPayment: false,
       selectedState: '',
       salesTaxRates: {
@@ -432,17 +432,26 @@ export default {
 
       // Simulate payment processing delay
       setTimeout(() => {
-        this.currentVolume = this.desiredVolume;
+        // Final 25% chance of success
+        if (Math.random() < 0.25) {
+          // Payment Successful
+          this.currentVolume = this.desiredVolume;
+          alert(`Payment of $${finalAmount.toFixed(2)} successful!`);
+        } else {
+          // Payment Failed
+          alert('Payment failed, please try again.');
+        }
+
+        // Reset state for both success and failure to allow retrying
         this.processingPayment = false;
-        // Reset card info for security
-        this.card = { number: '', expiry: '', cvv: '' }; 
-        // Reset signup form
+        this.card = { number: '', expiry: '', cvv: '' };
+        this.validation = { number: null, expiry: null, cvv: null };
         this.signup = { fullName: '', email: '', password: '', confirmPassword: '', phone: '', dob: '', ssn: '' };
-        // Reset captcha
+        this.signupValidation = { fullName: null, email: null, password: null, confirmPassword: null, phone: null, dob: null, ssn: null };
         this.captcha = { generated: '', input: '' };
-        // Reset tip
         this.tipAmount = '';
-        alert(`Payment of $${finalAmount.toFixed(2)} successful!`);
+        this.luckRollResult = null;
+        this.luckCheckMessage = '';
       }, 2000);
     },
     handleNoTip() {
@@ -507,7 +516,7 @@ export default {
   color: #333;
   padding: 2rem;
   max-width: 500px;
-  margin: auto;
+  margin: 4rem auto;
   border: 1px solid #ccc;
   border-radius: 10px;
   background-color: #f9f9f9;
