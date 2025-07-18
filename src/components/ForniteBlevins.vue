@@ -22,6 +22,11 @@ function randomizeBlevsterPosition() {
 onMounted(() => {
   setInterval(randomizeBlevsterPosition, 1000);
   randomizeBlevsterPosition();
+  // Play and loop Sandstorm on mount
+  if (sandstormAudio.value) {
+    sandstormAudio.value.volume = 0.5;
+    sandstormAudio.value.play();
+  }
 });
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 // Countdown for next free lootbox
@@ -84,6 +89,7 @@ function expandBackpack() {
 const selectedKeyIndex = ref(null);
 const selectedLootboxIndex = ref(null);
 const selectedVolumeIndex = ref(null);
+const sandstormAudio = ref(null);
 const airhornSound = ref(null);
 const vineboomSound = ref(null);
 const lowTaperFadeSound = ref(null);
@@ -367,7 +373,7 @@ function sortBackpack() {
 
 function blevsterClick() {
   if (blevsterBadMode.value) {
-    blevCoins.value = Math.max(0, blevCoins.value - 1000);
+    blevCoins.value -= 1000;
     if (wrongSound.value) {
       wrongSound.value.pause();
       wrongSound.value.currentTime = 0;
@@ -668,6 +674,14 @@ function confettiStyle(n) {
   <div v-if="showConfetti" class="confetti-container">
     <div v-for="n in 30" :key="n" class="confetti-piece" :style="confettiStyle(n)"></div>
   </div>
+  <audio
+    ref="sandstormAudio"
+    src="/Audio/Darude-Sandstorm.mp3"
+    preload="auto"
+    loop
+    autoplay
+    style="display:none"
+  ></audio>
   <audio ref="airhornSound" src="/Audio/airhorn.mp3" preload="auto"></audio>
   <audio ref="vineboomSound" src="/Audio/vineboom.mp3" preload="auto"></audio>
   <audio ref="lowTaperFadeSound" src="/Audio/imagine-if-ninja-got-a-low-taper-fade.mp3" preload="auto"></audio>
@@ -675,6 +689,7 @@ function confettiStyle(n) {
   <audio ref="wrongSound" src="/Audio/WRONG.mp3" preload="auto"></audio>
   <audio ref="explosionSound" src="/Audio/EXPLOSION.mp3" preload="auto"></audio>
   <audio ref="notEnoughMovementSound" src="/Audio/ninja-im-not-seeing-enough-movement.mp3" preload="auto"></audio>
+  <audio ref="sandstormAudio" src="/Audio/Darude - Sandstorm.mp3" preload="auto"></audio>
 </template>
 
 
