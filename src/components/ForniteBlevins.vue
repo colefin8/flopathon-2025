@@ -47,7 +47,7 @@ function showThankYouPopup() {
   }, 1500);
 }
 // Countdown for next free lootbox
-const nextLootboxCountdown = ref(60);
+const nextLootboxCountdown = ref(10);
 const nextLootboxCountdownText = computed(() => {
   const min = Math.floor(nextLootboxCountdown.value / 60);
   const sec = nextLootboxCountdown.value % 60;
@@ -71,7 +71,7 @@ onMounted(() => {
           itemType: ITEM_TYPES.LOOTBOX,
         });
       }
-      nextLootboxCountdown.value = 60;
+      nextLootboxCountdown.value = 10;
     }
   }, 1000);
 });
@@ -79,13 +79,13 @@ onUnmounted(() => {
   if (lootboxInterval) clearInterval(lootboxInterval);
 });
 
-// Backpack state: dynamic slots, starts at 15
-const INITIAL_SLOTS = 15;
+// Backpack state: dynamic slots, starts at 7
+const INITIAL_SLOTS = 7;
 const backpackSize = ref(INITIAL_SLOTS);
 const backpack = ref([]);
 
 // Currency state
-const blevCoins = ref(100);
+const blevCoins = ref(250);
 const blevCoinsFormatted = computed(() => blevCoins.value.toLocaleString());
 
 // Ensure backpack always has at least backpackSize slots
@@ -98,7 +98,7 @@ ensureBackpackSize();
 let nextBackpackId = 1;
 
 function expandBackpack() {
-  backpackSize.value += INITIAL_SLOTS;
+  backpackSize.value += 3;
   ensureBackpackSize();
 }
 
@@ -212,17 +212,20 @@ const currentVolume = computed(() => {
   if (selectedVolumeIndex.value !== null && backpack.value[selectedVolumeIndex.value] && backpack.value[selectedVolumeIndex.value].itemType === ITEM_TYPES.VOLUME) {
     return backpack.value[selectedVolumeIndex.value].value;
   }
-  return 100;
+  return 50;
 });
 
 function getVolumeRarity(volumeLevel) {
-  if ((volumeLevel >= 0 && volumeLevel <= 20) || (volumeLevel >= 80 && volumeLevel <= 100)) {
+  // Rarity based on exponential curve: lower values are rarer
+  if (volumeLevel >= 70) {
     return 'Common';
-  } else if ((volumeLevel > 20 && volumeLevel <= 30) || (volumeLevel >= 70 && volumeLevel < 80)) {
+  } else if (volumeLevel >= 50) {
     return 'Uncommon';
-  } else if ((volumeLevel > 30 && volumeLevel <= 47.5) || (volumeLevel >= 52.5 && volumeLevel < 70)) {
+  } else if (volumeLevel >= 30) {
+    return 'Rare';
+  } else if (volumeLevel >= 10) {
     return 'Epic';
-  } else if (volumeLevel > 47.5 && volumeLevel < 52.5) {
+  } else if (volumeLevel >= 0) {
     return 'Legendary';
   }
   return 'Common';
@@ -235,7 +238,6 @@ const showConfetti = ref(false);
 
 function openLootBox() {
   if (isOpening.value) return;
-
   if (selectedLootboxIndex.value === null) {
     alert("Please select a loot box to open.");
     return;
@@ -244,7 +246,6 @@ function openLootBox() {
     alert("Please select a Blev Key to open the loot box.");
     return;
   }
-
   if (airhornSound.value) {
     airhornSound.value.currentTime = 0;
     airhornSound.value.play();
@@ -253,43 +254,40 @@ function openLootBox() {
     lowTaperFadeSound.value.currentTime = 0;
     lowTaperFadeSound.value.play();
   }
-
   // Consume a key and a lootbox
   backpack.value[selectedKeyIndex.value] = null;
   backpack.value[selectedLootboxIndex.value] = null;
   selectedKeyIndex.value = null;
   selectedLootboxIndex.value = null;
-  
   isOpening.value = true;
   openedItem.value = [];
-
   // Simulate box opening animation
   setTimeout(() => {
     const items = [];
     for (let i = 0; i < 3; i++) {
       let newItem;
       const existingVolumes = backpack.value.filter(item => item && item.itemType === ITEM_TYPES.VOLUME);
-
       if (existingVolumes.length > 0 && Math.random() < 0.3) {
         // 30% chance to get a duplicate
         const duplicateItem = existingVolumes[Math.floor(Math.random() * existingVolumes.length)];
         newItem = { ...duplicateItem };
         delete newItem.id; // remove old id, addToBackpack will add a new one
       } else {
-        // Generate a new volume item
+        // Exponential probability: extremely unfair, almost always high values
+        // P(x) ~ exp(-lambda * (100 - x)), so most values are near 100
+        const lambda = 0.09; // Very steep curve, almost never below 50
         const r = Math.random();
-        const beta = Math.pow(Math.sin(r * Math.PI), 2);
-        const volumeLevel = parseFloat((beta * 100).toFixed(2));
-
+        let volumeLevel = 100 - (-Math.log(1 - r) / lambda);
+        if (volumeLevel > 100) volumeLevel = 100;
+        if (volumeLevel < 0) volumeLevel = 0;
         newItem = {
-            name: `Volume ${volumeLevel}`,
-            icon: volumeLevel === 0 ? '🔇' : '🔊',
-            itemType: ITEM_TYPES.VOLUME,
-            value: volumeLevel,
-            rarity: getVolumeRarity(volumeLevel)
+          name: `Volume ${volumeLevel}`,
+          icon: volumeLevel === 0 ? '🔇' : '🔊',
+          itemType: ITEM_TYPES.VOLUME,
+          value: volumeLevel,
+          rarity: getVolumeRarity(volumeLevel)
         };
       }
-      
       addToBackpack(newItem);
       items.push(newItem);
     }
@@ -560,6 +558,8 @@ function confettiStyle(n) {
       <img :src="dvdGifs[purchaseGifIndex]" alt="Purchase Gif" class="purchase-gif" />
     </div>
   </transition>
+  <!-- Overlay to block interaction during purchase popup -->
+  <div v-if="showPurchasePopup" class="purchase-blocker"></div>
   <div v-if="showConfetti" class="confetti-explosion">
     <div class="confetti-piece" v-for="n in 40" :key="n" :style="confettiStyle(n)"></div>
   </div>
@@ -780,7 +780,7 @@ function confettiStyle(n) {
   z-index: 100003;
 }
 .sadcat-fade-enter-active, .sadcat-fade-leave-active {
-  transition: opacity 0.8s;
+  transition: opacity 3s;
 }
 .sadcat-fade-enter-from, .sadcat-fade-leave-to {
   opacity: 0;
@@ -1364,6 +1364,17 @@ function confettiStyle(n) {
   100% {
     transform: translateY(100vh) rotate(720deg);
   }
+}
+
+.purchase-blocker {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 100009;
+  background: rgba(0,0,0,0.45); /* darken the page */
+  pointer-events: all;
 }
 </style>
 
