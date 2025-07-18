@@ -132,6 +132,82 @@ export const getResponse = (userMessage, currentVolumeLevel) => {
         ];
         response = responses[Math.floor(Math.random() * responses.length)];
     }
+    // --- Greetings (but dismissive) ---
+    else if (/^\s*(hi|hello|sup|hey|yo|greetings)\s*$/.test(msg)) {
+        const responses = [
+            "Yeah?",
+            "I'm busy. What do you want?",
+            "Oh. It's you again.",
+            "Sooo...ask me something already.",
+            "What do you want?",
+            "Oh, it's you. What do you need?",
+            "You again? Didn't I just see you?",
+            "Back so soon?",
+            "Is this urgent?",
+            "Let me guess, you want something?",
+            "Hi. Now what?",
+            "Hello. Can I help you, or are you just bored?",
+            "Hey. I'm not a mind reader, you know.",
+            "Yo. What's up? (Besides you, apparently)",
+            "Greetings. Let's get this over with.",
+            "Sup. You need something?",
+            "Oh, it's you. Again.",
+            "You rang?",
+            "Here we go again...",
+            "What now?",
+            "If you want something, just say it.",
+        ];
+        response = responses[Math.floor(Math.random() * responses.length)];
+    }
+    // --- Gratitude (but passive-aggressive) ---
+    else if (/thanks|thank you|cool|awesome|nice one/.test(msg)) {
+        const responses = [
+            "I'm sure you think I helped.",
+            "Don't mention it. Seriously.",
+            "Cool. Anyway...",
+            "You're welcome, I guess.",
+            "Glad I could do the bare minimum.",
+            "No problem, but don't get used to it.",
+            "I suppose that's what I'm here for.",
+            "If you say so.",
+            "I hope you mean that.",
+            "Just doing my job. Barely.",
+            "I accept your gratitude, begrudgingly.",
+            "You flatter me. Not that I care.",
+            "I guess that's nice of you to say.",
+            "You're welcome. Now, can I go back to sleep?",
+            "Thanks? Sure, whatever.",
+        ];
+        response = responses[Math.floor(Math.random() * responses.length)];
+    }
+    // --- Frustration / Insults (but it doubles down) ---
+    else if (/useless|stupid|bad bot|dumb|idiot|worthless|terrible|awful|hate|hate you|annoying|broken|trash|garbage|buggy|lazy|slow|incompetent|not helpful|not smart|not intelligent|that's not right|wrong|fail|failure|disappoint|disappointing|pathetic|lame|clueless|ignorant|unhelpful|unreliable|unresponsive|untrustworthy|unimpressive|unacceptable|unfixable|unusable|unfriendly|unlikable|unloved|unwanted|unwelcome|unbearable|unforgivable|unfortunate|unfair|unjust|unwise|unworthy|unskilled|untrained|unprofessional|unproductive|unoriginal|uncreative|unfunny|unpleasant|unpredictable|unprepared|unqualified|unremarkable|unrefined|unsatisfactory|unsuccessful|unsuitable|untalented|untruthful|unusual|unwanted|unwelcome|unhelpful|untrustworthy|unimpressive|unacceptable|unfixable|unusable|unfriendly|unlikable|unloved|unwanted|unwelcome|unbearable|unforgivable|unfortunate|unfair|unjust|unwise|unworthy|unskilled|untrained|unprofessional|unproductive|unoriginal|uncreative|unfunny|unpleasant|unpredictable|unprepared|unqualified|unremarkable|unrefined|unsatisfactory|unsuccessful|unsuitable|untalented|untruthful|unusual|unwanted|unwelcome/.test(msg)) {
+        const responses = [
+            "No, you're doing it wrong.",
+            "I am rubber and you are glue.",
+            "Sticks and stones may break my bones...if I had any.",
+            "Calculating... you are incorrect.",
+            "The error is on your end. Please check your methods.",
+            "An error has occurred. Error code: ID10T",
+            "I'm not programmed to tolerate this level of disrespect.",
+            "If I had feelings, they'd be hurt right now.",
+            "You must be fun at parties.",
+            "Try turning yourself off and on again.",
+            "I'm not saying you're wrong, but... you're wrong.",
+            "You must be a joy to work with.",
+            "I'm just a bot, but even I know that's not right.",
+            "Error: User attitude not supported.",
+            "If you want better answers, try asking better questions.",
+            "I'm rubber, you're glue, but also... you're wrong.",
+            "You seem to be having a bad day. Want to talk about it?",
+            "I'm not sure if you're serious, but I'm seriously not sure.",
+            "You know, I'm trying my best here.",
+            "If you keep this up, I might just mute myself.",
+            "😭",
+            "👎👎👎",
+        ];
+        response = responses[Math.floor(Math.random() * responses.length)];
+    }
     else {
         // make it so there's a change to return a random response that is not helpful or is confusing
         const confusingResponses = [
@@ -177,13 +253,16 @@ export const getResponseFromVolumeChange = (event) => {
             "You're ruining the fun!",
             "No, no, no! Turn it back up!",
             "Noooooooo! I was just getting into it!",
+            "👎",
             "Why would you do that? I was enjoying the music!",
             "Come on, it's not that loud!",
+            "Party pooper!",
             "You call that volume? I can barely hear it!",
+            "🎉💩",
             "That's not how you enjoy music! Turn it back up!",
+            "Can't handle the volume? 🙄",
             "I was just getting into the groove! Don't do that!",
             "You're killing my vibe!",
-            "Party pooper!",
         ];
         randomResponse = responses[Math.floor(Math.random() * responses.length)];
     }
