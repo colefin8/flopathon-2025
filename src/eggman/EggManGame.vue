@@ -8,8 +8,8 @@ const message = ref('');
 const volume = ref(0);
 const isWarningMode = ref(false);
 const is40EggNext = ref(false);
-const isNextEggWinner = ref(false);
-const eggCount = ref(25);
+const isEndGameNext = ref(false);
+const eggCount = ref(20);
 const eggmangameRef = ref(null);
 const primaryColor = ref("var(--primary-color)");
 const canvasRef = ref(null);
@@ -65,11 +65,23 @@ const onMouseUp = async () => {
       ) {
         riveInputs.isEating = true;
         let minusEgg = 1;
-        if (is40EggNext.value) {
+
+        if (isEndGameNext.value) {
+          // End game on this drop
+          isEndGameNext.value = false;
+          // Hide the egg immediately after drop
+          draggedEgg.value.visible = false;
+          await delay(800);
+          riveInputs.isEating = false;
+          winGame();
+          isDragging.value = false;
+          return;
+        } else if (is40EggNext.value) {
           minusEgg = 40;
           is40EggNext.value = false;
-          isNextEggWinner.value = true;
+          isEndGameNext.value = true;
         }
+
         eggCount.value = Math.max(eggCount.value - minusEgg, 0);
         if (eggCount.value === 0) {
           outOfEggs();
@@ -79,13 +91,9 @@ const onMouseUp = async () => {
         volume.value = Math.min(volume.value + increment, 100);
         // Hide the egg immediately after drop
         draggedEgg.value.visible = false;
-        
+
         await delay(800);
         riveInputs.isEating = false;
-        if (isNextEggWinner.value) {
-          isNextEggWinner.value = false;
-          winGame();
-        }
       }
     }
   }
@@ -202,6 +210,7 @@ onUnmounted(() => {
 function buyMoreEggs () {
   isWarningMode.value = false;
   is40EggNext.value = true;
+  isEndGameNext.value = false;
   riveInstance?.play();
   message.value = '';
   eggCount.value = 80;
