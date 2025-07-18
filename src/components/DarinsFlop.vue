@@ -1,7 +1,9 @@
 <template>
     <div class="darins-flop" @click="playSound">
 
-        <h1 class="input-container">Hamster Dance Volume Control</h1>
+        <div class="marquee">
+            <div class="marquee-text">The Best Volume Control in the World!!!</div>
+        </div>
 
         <div class="hampsters">
             <template v-for="k in 99" :key="k">
@@ -15,9 +17,10 @@
         </div>
 
         <div class="input-container">
-            <h2>Enter the volume in {{ units[selectedUnit] }}:</h2>
-            <div>
-                <input type="text" v-model="volumeInput" :placeholder="`Volume in ${units[selectedUnit]}`" readonly />
+            <h1>Hamster Dance Volume Control</h1>
+            <label>Enter the volume in {{ units[selectedUnit] }}:</label>
+            <div class="input-wrapper">
+                <input type="text" v-model="volumeInput" readonly placeholder="Volume" />
                 <b class="clear-button" @click="clearInput">&times;</b>
             </div>
 
@@ -50,24 +53,26 @@ class RotaryDial {
 
 	constructor({ callback, canvas, digits } = {}) {
         this.canvas = canvas;
-		this.canvasSize = 250;
+		this.canvasSize = 300;
+        this.bigSize = 375;
 		this.size = this.canvasSize-2;
 		this.discFillColor = 'black';
 		this.discStrokeColor = 'white';
 		this.circlesFillColor = 'white';
-		this.circlesStrokeColor = 'red';
+		this.circlesStrokeColor = 'black';
 		this.circlesHighlightColor = 'red';
-		this.textFillColor = 'black';
+		this.textFillColor = 'white';
 		this.textStrokeColor = 'silver';
 		this.arrowFillColor = 'silver';
 		this.arrowStrokeColor = 'black';
-		this.canvas.width = this.w = this.canvasSize;
-		this.canvas.height = this.h = this.canvasSize;
-		this.w2 = this.w / 2;
-		this.h2 = this.h / 2;
-        this.h23 = this.h * .65
+		this.canvas.width = this.w = this.bigSize;
+		this.canvas.height = this.h = this.bigSize;
+		this.w2 = this.bigSize / 2;
+		this.h2 = this.bigSize / 2;
+        this.arrowH = this.bigSize * .65
 		this.TAU = Math.PI * 2;
 		this.offset = this.size * 0.25;
+        this.borderCircle = (this.bigSize - 2)/2;
         this.outerCircle = this.size/2;
 		this.innerCircle = this.outerCircle-this.offset;
 		this.c = this.canvas.getContext('2d');
@@ -85,7 +90,8 @@ class RotaryDial {
 		this.c.clearRect(0,0,this.w,this.h);
         this.c.lineWidth = this.size * 0.01;
 		this.c.beginPath();
-		this.c.arc(this.w2, this.h2, this.outerCircle, 0, this.TAU, false );
+		this.c.arc(this.w2, this.h2, this.borderCircle, 0, this.TAU, true);
+		this.c.arc(this.w2, this.h2, this.outerCircle, 0, this.TAU, false);
 		this.c.moveTo(this.w2+this.innerCircle, this.h2 );
 		this.c.arc(this.w2, this.h2, this.innerCircle, this.TAU, 0, true);
 		this.c.strokeStyle = this.discStrokeColor;
@@ -97,9 +103,13 @@ class RotaryDial {
         this.c.lineWidth = 1;
 		for (let i = 0; i < 10; i++) {
 			const a = this.a+i/2+.5;
+            const a2 = 1+i/2+.5;
             const center = this.innerCircle + (this.outerCircle-this.innerCircle)/2;
+            const center2 = this.outerCircle + (this.borderCircle-this.outerCircle)/3;
             const x = Math.cos(a)*center;
             const y = Math.sin(a)*center;
+            const x2 = Math.cos(a2)*center2;
+            const y2 = Math.sin(a2)*center2;
             const n = (10-i)%10;
             const digit = this.digits[n]
             if (digit) {
@@ -109,17 +119,22 @@ class RotaryDial {
                 this.c.strokeStyle = this.circlesStrokeColor;
                 this.c.fill();
                 this.c.stroke();
+
+                this.c.arc(x, y, this.size * 0.02, 0, this.TAU, true);
+                this.c.fillStyle = this.circlesStrokeColor;
+                this.c.fill();
+
                 this.c.fillStyle = this.textFillColor;
                 this.c.strokeStyle = this.textStrokeColor;
-                this.c.fillText(digit, x, y+this.size * 0.02);
-                this.c.strokeText(digit, x, y+this.size * 0.02);
+                this.c.strokeText(digit, x2, y2+this.size * 0.02);
+                this.c.fillText(digit, x2, y2+this.size * 0.02);
             }
         }
 		this.c.restore();
 		this.c.beginPath()
-		this.c.moveTo(this.w - this.size * 0.215, this.h23);
-        this.c.quadraticCurveTo(this.w, this.h23 - this.size * 0.001, this.w, this.h23 - this.size * 0.04);
-		this.c.lineTo(this.w, this.h23 + this.size * 0.04);
+		this.c.moveTo(this.w - this.size * 0.315 - this.offset/2, this.arrowH);
+        this.c.quadraticCurveTo(this.w - this.offset/2, this.arrowH - this.size * 0.001, this.w - this.offset/2, this.arrowH - this.size * 0.04);
+		this.c.lineTo(this.w - this.offset/2, this.arrowH + this.size * 0.04);
 		this.c.closePath();
 		this.c.fillStyle = this.arrowFillColor;
 		this.c.strokeStyle = this.arrowStrokeColor;
@@ -217,7 +232,7 @@ onMounted(() => {
 	}
 	new RotaryDial({ callback: func, canvas: document.querySelector('#digits') });
     new RotaryDial({ callback: func, canvas: document.querySelector('#octal'), digits: '012345678o' });
-    new RotaryDial({ callback: func, canvas: document.querySelector('#roman'), digits: 'CDILMVX_' });
+    new RotaryDial({ callback: func, canvas: document.querySelector('#roman'), digits: '_CDILMVX' });
     new RotaryDial({ callback: func, canvas: document.querySelector('#letters'), digits: '#FEDCBA' });
 
     audio.value = document.querySelector('audio');
@@ -393,113 +408,160 @@ function romanToInt(s) {
     font-variant: small-caps;
     font-optical-sizing: auto;
     font-style: normal;
-}
 
-.rotary-dial-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 48px;
-}
+    button {
+        background: linear-gradient(45deg, orange, yellow);
+        border-radius: 4px;
+        padding: 10px 20px;
+        margin: 10px;
+        border: none;
+        cursor: pointer;
+        font: inherit;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        animation: pulse 1.5s infinite;
+        box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        overflow: visible;
+        position: relative;
 
-input {
-    font: inherit;
-    margin: 10px 0;
-    padding: 8px;
-    width: 200px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
+        &:active {
+            animation: wobble 0.8s;
+        }
+    }
 
-dialog {
-    background-color: tan;
-    color: oldlace;
-    padding: 50px;
-    box-shadow: 4px 4px 8px black;
-    z-index: 30;
-    max-width: calc(100vw - 96px);
-    box-sizing: border-box;
-}
+    input {
+        font: inherit;
+        margin: 10px 0;
+        padding: 8px;
+        width: 200px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
 
-.button-container {
-    height: 40px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+    dialog {
+        background-color: tan;
+        color: oldlace;
+        padding: 50px;
+        box-shadow: 4px 4px 8px black;
+        z-index: 30;
+        max-width: calc(100vw - 96px);
+        box-sizing: border-box;
+    }
 
-button {
-    background: linear-gradient(45deg, orange, yellow);
-    border-radius: 4px;
-    padding: 10px 20px;
-    margin: 10px;
-    border: none;
-    cursor: pointer;
-    font: inherit;
-    font-size: 16px;
-    transition: all 0.3s ease;
-    animation: pulse 1.5s infinite;
-    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
-    overflow: visible;
-    position: relative;
+    .button-container {
+        height: 40px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
 
-    &:active {
-        animation: wobble 0.8s;
+    .rotary-dial-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 48px;
+    }
+
+    .hampsters {
+        background: white;
+        margin: 0;
+        position: fixed;
+        top: 0;
+        z-index: 10;
+        overflow: hidden;
+    }
+
+    .input-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 24px;
+        padding: 24px;
+        background: magenta;
+        color: lime;
+        font-size: 1em;
+        font-style: italic;
+        font-weight: bold;
+        position: relative;
+        z-index: 20;
+        text-shadow: 2px 2px 4px black;
+    }
+
+    audio {
+        opacity: 0;
+    }
+
+    canvas {
+        cursor: pointer;
+    }
+
+    .input-wrapper {
+        position: relative;
+
+        .clear-button {
+            font-size: 32px;
+            font-weight: bold;
+            color: black;
+            text-shadow: none;
+            text-align: center;
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-55%);
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+        }
     }
 }
 
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
-}
-
-@keyframes wobble {
-    0%, 100% { transform: translateX(0%); }
-    15% { transform: translateX(-25%) rotate(-5deg); }
-    30% { transform: translateX(20%) rotate(3deg); }
-    45% { transform: translateX(-15%) rotate(-3deg); }
-    60% { transform: translateX(10%) rotate(2deg); }
-    75% { transform: translateX(-5%) rotate(-1deg); }
-}
-
-.hampsters {
-    background: white;
-    margin: 0;
+.marquee {
     position: fixed;
     top: 0;
-    z-index: 10;
-    overflow: hidden;
-}
-
-.input-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 24px;
-    padding: 24px;
-    background: magenta;
-    color: lime;
-    font-size: 1em;
-    font-style: italic;
-    font-weight: bold;
-    position: relative;
-    z-index: 20;
-    text-shadow: 2px 2px 4px black;
-}
-
-.clear-button {
-    cursor: pointer;
-    font-size: 32px;
-    font-weight: bold;
-    color: black;
-    text-shadow: none;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(90deg, rgba(255, 0, 0, 0.5), rgba(255, 165, 0, 0.5), rgba(255, 255, 0, 0.5), rgba(0, 255, 0, 0.5), rgba(0, 0, 255, 0.5), rgba(75, 0, 130, 0.5), rgba(238, 130, 238, 0.5));
+    color: white;
+    font-size: 24px;
     text-align: center;
+    padding: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    z-index: 1000;
+    font-family: 'Comic Sans MS', 'Comic Sans', cursive;
+    font-variant: small-caps;
+    font-optical-sizing: auto;
+    font-style: italic;
+    text-shadow: 2px 2px 4px black;
+
+    .marquee-text {
+        display: inline-block;
+        animation: marquee-content 10s linear infinite;
+        padding-left: 100%;
+    }
 }
 
-audio {
-    opacity: 0;
-}
+    @keyframes marquee-content {
+    	from { transform: translateX( 0% ); }
+    	to { transform: translateX( -100% ); }
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+
+    @keyframes wobble {
+        0%,
+        100% { transform: translateX(0%); }
+        15% { transform: translateX(-25%) rotate(-5deg); }
+        30% { transform: translateX(20%) rotate(3deg); }
+        45% { transform: translateX(-15%) rotate(-3deg); }
+        60% { transform: translateX(10%) rotate(2deg); }
+        75% { transform: translateX(-5%) rotate(-1deg); }
+    }
 
 </style>
