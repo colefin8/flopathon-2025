@@ -29,6 +29,23 @@ onMounted(() => {
   }
 });
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+// DVD GIF bouncing logic
+const dvdGifs = [
+  '/Gifs/GokuDance1.gif',
+  '/Gifs/NinjaDance1.gif',
+  '/Gifs/NinjaDance2.gif',
+  '/Gifs/PikaDance1.gif'
+];
+// Purchase popup state
+const showPurchasePopup = ref(false);
+const purchaseGifIndex = ref(0);
+function showThankYouPopup() {
+  purchaseGifIndex.value = Math.floor(Math.random() * dvdGifs.length);
+  showPurchasePopup.value = true;
+  setTimeout(() => {
+    showPurchasePopup.value = false;
+  }, 1500);
+}
 // Countdown for next free lootbox
 const nextLootboxCountdown = ref(60);
 const nextLootboxCountdownText = computed(() => {
@@ -96,12 +113,14 @@ const lowTaperFadeSound = ref(null);
 const chachingSound = ref(null);
 const wrongSound = ref(null);
 const explosionSound = ref(null);
+const yaySound = ref(null);
 
 const blevsterImages = ref([
   '/Blevsters/TheBlevster.jpg',
   '/Blevsters/Blevster3.jpg',
   '/Blevsters/Blevster2.jpg',
-  '/Blevsters/Blevster1.jpg'
+  '/Blevsters/Blevster1.jpg',
+  '/Blevsters/UnicornCage.jpg'
 
 ]);
 const currentBlevsterImageIndex = ref(0);
@@ -281,6 +300,13 @@ function openLootBox() {
     setTimeout(() => {
       showConfetti.value = false;
     }, 2000);
+    // Play YAY sound effect before explosion
+    setTimeout(() => {
+      if (yaySound.value) {
+        yaySound.value.currentTime = 0;
+        yaySound.value.play();
+      }
+    }, 0);
     // Play explosion sound 2.5s after button click (0.5s after confetti starts)
     setTimeout(() => {
       if (explosionSound.value) {
@@ -313,6 +339,7 @@ function buyBlevKey() {
       chachingSound.value.currentTime = 0;
       chachingSound.value.play();
     }
+    showThankYouPopup();
   } else {
     alert("Not enough Blev Coins to buy a key!");
   }
@@ -335,6 +362,7 @@ function buyLootbox() {
       chachingSound.value.currentTime = 0;
       chachingSound.value.play();
     }
+    showThankYouPopup();
   } else {
     alert("Not enough Blev Coins to buy a loot box!");
   }
@@ -348,6 +376,7 @@ function buyBackpackExpansion() {
       chachingSound.value.currentTime = 0;
       chachingSound.value.play();
     }
+    showThankYouPopup();
   } else {
     alert("Not enough Blev Coins to expand the backpack!");
   }
@@ -379,6 +408,11 @@ function blevsterClick() {
       wrongSound.value.currentTime = 0;
       wrongSound.value.play();
     }
+    // Show Sad Cat flash
+    showSadCat.value = true;
+    setTimeout(() => {
+      showSadCat.value = false;
+    }, 1200);
   } else {
     blevCoins.value++;
     if (vineboomSound.value) {
@@ -388,7 +422,10 @@ function blevsterClick() {
     }
   }
   currentBlevsterImageIndex.value = (currentBlevsterImageIndex.value + 1) % blevsterImages.value.length;
+// Sad Cat flash state (must be outside function for reactivity)
 }
+const showSadCat = ref(false);
+
 
 const questions = [
   {
@@ -511,6 +548,18 @@ function confettiStyle(n) {
 </script>
 
 <template>
+  <transition name="sadcat-fade">
+    <div v-if="showSadCat" class="sadcat-flash" style="z-index:100001;">
+      <img src="/SadCat.jpg" alt="Sad Cat" class="sadcat-img" style="z-index:100002;" />
+    </div>
+  </transition>
+  <!-- Purchase Thank You Popup -->
+  <transition name="purchase-fade">
+    <div v-if="showPurchasePopup" class="purchase-popup">
+      <div class="purchase-message">Thank You For Your Purchase!</div>
+      <img :src="dvdGifs[purchaseGifIndex]" alt="Purchase Gif" class="purchase-gif" />
+    </div>
+  </transition>
   <div v-if="showConfetti" class="confetti-explosion">
     <div class="confetti-piece" v-for="n in 40" :key="n" :style="confettiStyle(n)"></div>
   </div>
@@ -676,7 +725,7 @@ function confettiStyle(n) {
   </div>
   <audio
     ref="sandstormAudio"
-    src="/Audio/Darude-Sandstorm.mp3"
+    src="/Audio/Darude - Sandstorm.mp3"
     preload="auto"
     loop
     autoplay
@@ -690,10 +739,97 @@ function confettiStyle(n) {
   <audio ref="explosionSound" src="/Audio/EXPLOSION.mp3" preload="auto"></audio>
   <audio ref="notEnoughMovementSound" src="/Audio/ninja-im-not-seeing-enough-movement.mp3" preload="auto"></audio>
   <audio ref="sandstormAudio" src="/Audio/Darude - Sandstorm.mp3" preload="auto"></audio>
+  <audio ref="yaySound" src="/Audio/YAY.mp3" preload="auto"></audio>
 </template>
 
 
 <style scoped>
+/* Sad Cat flash styles */
+.sadcat-flash {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: stretch;
+  background: rgba(0,0,0,0.45);
+  z-index: 100000;
+  pointer-events: none;
+}
+.sadcat-img {
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  border-radius: 0;
+  box-shadow: none;
+  margin-bottom: 0;
+}
+.sadcat-caption {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 4vw;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 0 32px #23263a, 0 0 8px #000;
+  margin-top: 0;
+  z-index: 100003;
+}
+.sadcat-fade-enter-active, .sadcat-fade-leave-active {
+  transition: opacity 0.8s;
+}
+.sadcat-fade-enter-from, .sadcat-fade-leave-to {
+  opacity: 0;
+}
+.sadcat-fade-enter-to, .sadcat-fade-leave-from {
+  opacity: 1;
+}
+/* Purchase popup styles */
+.purchase-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #23263a;
+  border-radius: 1.5rem;
+  box-shadow: 0 0 48px 12px #f6e05e;
+  z-index: 100010;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3.5rem 4rem;
+  min-width: 520px;
+  min-height: 440px;
+}
+.purchase-message {
+  font-size: 3rem;
+  font-weight: bold;
+  color: #f6e05e;
+  margin-bottom: 2.5rem;
+  text-align: center;
+  text-shadow: 0 0 16px #23263a, 0 0 8px #000;
+}
+.purchase-gif {
+  width: 320px;
+  height: 320px;
+  object-fit: contain;
+  border-radius: 1.5rem;
+  box-shadow: 0 0 32px 8px #fff2;
+}
+.purchase-fade-enter-active, .purchase-fade-leave-active {
+  transition: opacity 0.5s;
+}
+.purchase-fade-enter-from, .purchase-fade-leave-to {
+  opacity: 0;
+}
+.purchase-fade-enter-to, .purchase-fade-leave-from {
+  opacity: 1;
+}
 @keyframes confetti-fall {
   0% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
   80% { opacity: 1; }
