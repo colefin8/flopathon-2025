@@ -1,5 +1,7 @@
 # Flopathon-2025
 
+[link here](https://flopathon-2025.netlify.app/)
+
 This repository is for Awardco's 2025 Flopathon. It contains a Vue 3 project powered by Vite with Vue Router, Pinia state management, and Vitest for unit testing.
 
 ## Recommended IDE Setup
