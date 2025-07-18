@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "lodash.debounce": "^4.0.8",
+    "@vueuse/core": "^13.5.0",
     "pinia": "^3.0.3",
     "vue": "^3.5.17",
     "vue-router": "^4.5.1"
@@ -21,8 +22,19 @@
     "@vue/test-utils": "^2.4.6",
     "jsdom": "^26.1.0",
     "prettier": "3.5.3",
+    "sass-embedded": "^1.89.2",
     "vite": "^7.0.0",
     "vite-plugin-vue-devtools": "^7.7.7",
     "vitest": "^3.2.4"
+  },
+  "prettier": {
+    "semi": true,
+    "singleQuote": true,
+    "trailingComma": "all",
+    "tabWidth": 4,
+    "printWidth": 80,
+    "bracketSpacing": true,
+    "arrowParens": "always",
+    "endOfLine": "lf"
   }
 }
