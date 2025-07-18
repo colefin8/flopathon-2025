@@ -120,9 +120,7 @@ const earnIdx = ref(0);
 
 function openEarnProgram() {
   showEarnModal.value = true;
-  earnAnswer.value = '';
-  earnAwarded.value = false;
-  earnIdx.value = 0;
+  // Do not reset state here; preserve progress
 }
 
 function submitEarnAnswer() {
@@ -138,6 +136,7 @@ function nextEarnQuestion() {
     earnAnswer.value = '';
     earnAwarded.value = false;
   } else {
+    // All questions complete, just close modal, do not reset progress
     showEarnModal.value = false;
   }
 }
