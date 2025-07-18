@@ -1,12 +1,12 @@
 <script setup>
 import { ref, nextTick, onMounted } from 'vue';
 import debounce from 'lodash.debounce';
-import MESSAGE_TYPE from '../messageType.js';
+import MESSAGE_TYPE from './messageType.js';
 import chatBubble from './chatBubble.vue';
 import chatInput from './chatInput.vue';
 
 // import { getResponse } from '../messageResponseUtils.js';
-import { getResponse, getResponseFromVolumeChange } from '../messageResponseUtils.js';
+import { getResponse, getResponseFromVolumeChange } from './messageResponseUtils.js';
 
 // dummy data for the chat bubbles
 const chatBubbles = ref([

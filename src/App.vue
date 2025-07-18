@@ -1,49 +1,60 @@
 <script setup>
-import { RouterLink, RouterView, useRouter } from 'vue-router';
-import chatContainer from './components/chatContainer.vue';
+import { ref } from 'vue'
+import { RouterLink, RouterView, useRouter } from 'vue-router'
 
 const router = useRouter()
 const routes = router.options.routes
+const showCode = ref(false)
+
+const toggleCode = () => {
+  showCode.value = !showCode.value
+}
 </script>
 
-
 <template>
-  <div class="logo-header">
-    <img class="logo-header__logo" src="@/assets/volume-intelligence-logo-2.png" alt="Logo" />
-  </div>
-  <div class="contents">
-    <chat-container />
-  </div>
+  <header>
+    <nav class="main-nav">
+      <div class="left-nav">
+        <div v-for="route in routes" :key="route.name">
+          <RouterLink  :to="route.path" class="link">
+            {{ route.meta?.displayName || route.name }}
+          </RouterLink>|
+        </div>
+      </div>
+      <button @click="toggleCode">QR Code</button>
+    </nav>
+  </header>
+
+  <RouterView />
+  <img class="qr" v-if="showCode" src="@/assets/peopleschoice.png"/>
 </template>
 
-<style>
-html, body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  background: rgb(33, 33, 33);
-}
-
-.logo-header {
+<style scoped>
+header {
   position: fixed;
   top: 0;
   left: 0;
+  right: 0;
   width: 100%;
-  height: 64px;
-  background-color: rgb(33, 33, 33);
-  border-bottom: solid 1px rgb(61, 61, 61);
-  box-shadow: 0 4px 32px rgba(0,0,0,0.25);
-
+  height: 60px;
+}
+.link:hover {
+  color: lime;
+}
+.main-nav {
+  background-color: #666666;
+  font-size: 1.8em;
   display: flex;
-  align-items: center;
-  color: white;
-  font-size: 24px;
+  justify-content: space-between;
 }
-.logo-header__logo {
-  max-height: 48px;
-  margin-left: 16px;
+.left-nav {
+  display: flex;
 }
-
-.contents {
-  padding-top: 64px; /* to avoid overlap with the header */
+.qr {
+  position: fixed;
+  height: 200px;
+  width: 200px;
+  bottom: 20px;
+  right: 20px;
 }
 </style>

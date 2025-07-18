@@ -11,7 +11,7 @@
 
 <script setup>
 import { computed, ref } from 'vue';
-import MESSAGE_TYPE from '../messageType.js';
+import MESSAGE_TYPE from './messageType.js';
 
 // create a prop to determine if the message is from the user or the bot
 const props = defineProps({
@@ -57,7 +57,8 @@ const styling = computed(() => {
     align-self: flex-end;
 }
 .chat-bubble--bot, .chat-bubble--thinking {
-    background-color: #4b4b4b;
+    background-color: transparent;
+    box-shadow: none;
     align-self: flex-start;
 }
 
