@@ -73,29 +73,39 @@ const blevsterImages = ref([
 ]);
 const currentBlevsterImageIndex = ref(0);
 
-// // Inactivity timer with popup
-// let inactivityTimer = null;
-// const showAngryBlevPopup = ref(false);
-// function resetInactivityTimer() {
-//   clearTimeout(inactivityTimer);
-//   inactivityTimer = setTimeout(() => {
-//     showAngryBlevPopup.value = true;
-//     // Optionally reload after a delay
-//     setTimeout(() => {
-//       location.reload();
-//     }, 2000);
-//   }, 1000);
-// }
+// Inactivity timer with popup
+let inactivityTimer = null;
+const showAngryBlevPopup = ref(false);
+const notEnoughMovementSound = ref(null);
+const angryBlevButtonEnabled = ref(false);
+function resetInactivityTimer() {
+  clearTimeout(inactivityTimer);
+  inactivityTimer = setTimeout(() => {
+    showAngryBlevPopup.value = true;
+    // Play the 'not enough movement' sound when popup is shown
+    if (notEnoughMovementSound.value) {
+      notEnoughMovementSound.value.currentTime = 0;
+      notEnoughMovementSound.value.play();
+    }
+    angryBlevButtonEnabled.value = false;
+    setTimeout(() => {
+      angryBlevButtonEnabled.value = true;
+    }, 3000);
+  }, 1000);
+}
+function tryAgainReload() {
+  location.reload();
+}
 
-// onMounted(() => {
-//   window.addEventListener('mousemove', resetInactivityTimer);
-//   resetInactivityTimer();
-// });
+onMounted(() => {
+  window.addEventListener('mousemove', resetInactivityTimer);
+  resetInactivityTimer();
+});
 
-// onUnmounted(() => {
-//   window.removeEventListener('mousemove', resetInactivityTimer);
-//   clearTimeout(inactivityTimer);
-// });
+onUnmounted(() => {
+  window.removeEventListener('mousemove', resetInactivityTimer);
+  clearTimeout(inactivityTimer);
+});
 
 // Item type definitions
 const ITEM_TYPES = {
@@ -406,7 +416,8 @@ function submitAnswers() {
 <template>
   <div v-if="showAngryBlevPopup" class="angry-blev-popup">
     <img src="/ANGRYBLEV.jpg" alt="Angry Blev" class="angry-blev-img" />
-    <div class="angry-blev-text">NOT ENOUGH MOVEMENT</div>
+    <div class="angry-blev-text">I'M NOT SEEING ENOUGH MOVEMENT</div>
+    <button class="angry-blev-reload-btn" @click="tryAgainReload" :disabled="!angryBlevButtonEnabled">Try Again</button>
   </div>
   <div class="current-volume-module">
     <span class="current-volume-icon">🔊</span>
@@ -547,9 +558,10 @@ function submitAnswers() {
         </div>
     </div>
   </div>
-  <audio ref="airhornSound" src="/airhorn.mp3" preload="auto"></audio>
-  <audio ref="vineboomSound" src="/vineboom.mp3" preload="auto"></audio>
-  <audio ref="lowTaperFadeSound" src="/imagine-if-ninja-got-a-low-taper-fade.mp3" preload="auto"></audio>
+  <audio ref="airhornSound" src="/Audio/airhorn.mp3" preload="auto"></audio>
+  <audio ref="vineboomSound" src="/Audio/vineboom.mp3" preload="auto"></audio>
+  <audio ref="lowTaperFadeSound" src="/Audio/imagine-if-ninja-got-a-low-taper-fade.mp3" preload="auto"></audio>
+  <audio ref="notEnoughMovementSound" src="/Audio/ninja-im-not-seeing-enough-movement.mp3" preload="auto"></audio>
 </template>
 
 
@@ -581,6 +593,28 @@ function submitAnswers() {
   text-align: center;
   margin-bottom: 1rem;
   letter-spacing: 2px;
+}
+.angry-blev-reload-btn {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #fff;
+  background: #ff2e2e;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.75rem 2rem;
+  cursor: pointer;
+  margin-top: 1rem;
+  box-shadow: 0 0 8px 2px #f6e05e;
+  transition: background 0.15s;
+}
+.angry-blev-reload-btn:hover {
+  background: #c53030;
+}
+.angry-blev-reload-btn:disabled {
+  background: #555 !important;
+  color: #ccc !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
 }
 .current-volume-module {
   display: flex;
