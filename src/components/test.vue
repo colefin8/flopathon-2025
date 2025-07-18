@@ -33,9 +33,10 @@
           <div class="modal-content">
             <span class="close" @click="showStore = false">&times;</span>
             <h3>Store</h3>
-            <button @click="buyLootBox">Buy Loot Box</button>
-            <button @click="buyKey">Buy Key</button>
-            <button @click="increaseStorage">Increase Storage Size</button>
+            <p>Points: {{ points }}</p>
+            <button @click="buyLootBox" :disabled="points < 3">Buy Loot Box (3 pts)</button>
+            <button @click="buyKey" :disabled="points < 10">Buy Key (10 pts)</button>
+            <button @click="increaseStorage" :disabled="points < 8">Increase Storage Size (8 pts)</button>
             <p>Storage Size: {{ storageSize }}</p>
             <p>Loot Boxes: {{ lootBoxCount }}</p>
             <p>Keys: {{ keyCount }}</p>
@@ -89,6 +90,7 @@ const showStorage = ref(false);
 const showStore = ref(false);
 const openLootBoxIdx = ref(null); // index of loot box to open
 const storageSize = ref(15);
+const points = ref(8); // Start with 8 points
 
 // --- Item Types and Initial Items ---
 const ITEM_TYPES = {
@@ -154,6 +156,13 @@ onMounted(async () => {
     events: {
       onReady: () => {
         player.setVolume(volume.value);
+      },
+      onStateChange: (event) => {
+        // 0 = ended, 1 = playing
+        if (event.data === window.YT.PlayerState.ENDED && isPlaying.value) {
+          player.seekTo(0);
+          player.playVideo();
+        }
       }
     }
   });
@@ -224,26 +233,32 @@ function openLootBox(idx) {
 }
 
 function buyLootBox() {
+  if (points.value < 3) return;
   for (let i = 0; i < storageItems.value.length; i++) {
     if (!storageItems.value[i]) {
       storageItems.value[i] = { type: ITEM_TYPES.LOOTBOX };
+      points.value -= 3;
       break;
     }
   }
 }
 
 function buyKey() {
+  if (points.value < 10) return;
   for (let i = 0; i < storageItems.value.length; i++) {
     if (!storageItems.value[i]) {
       storageItems.value[i] = { type: ITEM_TYPES.KEY };
+      points.value -= 10;
       break;
     }
   }
 }
 
 function increaseStorage() {
+  if (points.value < 8) return;
   storageSize.value++;
   storageItems.value.push(null);
+  points.value -= 8;
 }
 
 function getItemLabel(item) {
