@@ -4,7 +4,7 @@ import VolumeSlider from './VolumeSlider.vue';
 import Note from './Note.vue';
 import { Rive } from "@rive-app/canvas";
 
-const volume = ref(50);
+const volume = ref(0);
 const eggCount = ref(20);
 const canvasRef = ref(null);
 
@@ -50,6 +50,9 @@ const onMouseUp = () => {
         eggY <= rect.bottom
       ) {
         isEating.value = true;
+        // increase volume by a random integer between 1 and 6, max 100
+        const increment = Math.floor(Math.random() * 6) + 1;
+        volume.value = Math.min(volume.value + increment, 100);
         setTimeout(() => {
           isEating.value = false;
         }, 800);
