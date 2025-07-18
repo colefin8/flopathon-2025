@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import VolumeSlider from './VolumeSlider.vue';
 import Note from './Note.vue';
 import { Rive } from "@rive-app/canvas";
@@ -8,17 +8,95 @@ const volume = ref(50);
 const eggCount = ref(20);
 const canvasRef = ref(null);
 
-onMounted(() => {
-  const r = new Rive({
-        src: "public/eggman.riv",
-        canvas: canvasRef.value,
-        autoplay: true,
-        stateMachines: "State Machine 1",
-        onLoad: () => {
-          r.resizeDrawingSurfaceToCanvas();
-        },
-    });
+// data binding for eggman state machine input
+const isEating = ref(false);
+
+// dragging state
+const isDragging = ref(false);
+const draggedEgg = ref({
+  x: 0,
+  y: 0,
+  visible: false
 });
+
+const grabEgg = (event) => {
+  isDragging.value = true;
+  draggedEgg.value = {
+    x: event.clientX,
+    y: event.clientY,
+    visible: true
+  };
+};
+
+const onMouseMove = (event) => {
+  if (isDragging.value) {
+    draggedEgg.value.x = event.clientX;
+    draggedEgg.value.y = event.clientY;
+  }
+};
+
+const onMouseUp = () => {
+  if (isDragging.value) {
+    // check if the egg was dropped over the eggman canvas
+    const canvas = canvasRef.value;
+    if (canvas) {
+      const rect = canvas.getBoundingClientRect();
+      const eggX = draggedEgg.value.x;
+      const eggY = draggedEgg.value.y;
+      if (
+        eggX >= rect.left &&
+        eggX <= rect.right &&
+        eggY >= rect.top &&
+        eggY <= rect.bottom
+      ) {
+        isEating.value = true;
+        setTimeout(() => {
+          isEating.value = false;
+        }, 800);
+      }
+    }
+  }
+  isDragging.value = false;
+  draggedEgg.value.visible = false;
+};
+
+let riveInstance = null;
+let isEatingInput = null;
+
+onMounted(() => {
+  riveInstance = new Rive({
+    src: "public/eggman.riv",
+    canvas: canvasRef.value,
+    autoplay: true,
+    stateMachines: "State Machine 1",
+    onLoad: () => {
+      riveInstance.resizeDrawingSurfaceToCanvas();
+      // Data binding: find the isEating input and bind it to the ref
+      const inputs = riveInstance.stateMachineInputs("State Machine 1");
+      isEatingInput = inputs.find(input => input.name === "isEating");
+      if (isEatingInput) {
+        isEatingInput.value = isEating.value;
+      }
+    },
+  });
+
+  document.addEventListener('mousemove', onMouseMove);
+  document.addEventListener('mouseup', onMouseUp);
+});
+
+// Watch for changes to isEating and update the Rive input
+watch(isEating, (newVal) => {
+  if (isEatingInput) {
+    isEatingInput.value = newVal;
+  }
+});
+
+onUnmounted(() => {
+  document.removeEventListener('mousemove', onMouseMove);
+  document.removeEventListener('mouseup', onMouseUp);
+});
+
+
 </script>
 
 <template>
@@ -32,7 +110,7 @@ onMounted(() => {
         <canvas id="eggman" ref="canvasRef" width="175" height="175"></canvas>
 
         <div class="basket-area">
-          <svg class="eggs" width="87" height="53" viewBox="0 0 87 53" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg class="eggs" width="87" height="53" viewBox="0 0 87 53" fill="none" xmlns="http://www.w3.org/2000/svg" @mousedown="grabEgg">
             <path d="M30.8869 7.85281C36.6947 10.1342 39.1816 18.1904 36.1065 26.0189C33.0313 33.8474 25.7261 38.0571 19.9184 35.7757C14.1106 33.4944 11.6237 25.4382 14.6989 17.6097C17.774 9.78114 25.0792 5.57142 30.8869 7.85281Z" fill="#EDEDED" stroke="black"/>
             <path d="M46.8869 4.85281C52.6947 7.13419 55.1816 15.1904 52.1065 23.0189C49.0313 30.8474 41.7261 35.0571 35.9184 32.7757C30.1106 30.4944 27.6237 22.4382 30.6989 14.6097C33.774 6.78114 41.0792 2.57142 46.8869 4.85281Z" fill="#EDEDED" stroke="black"/>
             <path d="M11.117 20.4806C16.5329 17.3818 24.371 20.4886 28.548 27.7889C32.725 35.0892 31.4317 43.4207 26.0158 46.5196C20.5998 49.6184 12.7618 46.5116 8.58478 39.2113C4.40775 31.9109 5.70111 23.5794 11.117 20.4806Z" fill="#EDEDED" stroke="black"/>
@@ -54,6 +132,20 @@ onMounted(() => {
             </div>
           </div>
         </div>
+        
+        <!-- draggable egg -->
+        <svg 
+          v-if="draggedEgg.visible" 
+          class="draggable-egg" 
+          width="25" 
+          height="31" 
+          viewBox="0 0 25 31" 
+          fill="none" 
+          xmlns="http://www.w3.org/2000/svg"
+          :style="{ left: draggedEgg.x + 'px', top: draggedEgg.y + 'px' }"
+        >
+          <path d="M12.4531 0.5C18.6929 0.5 23.9531 7.08915 23.9531 15.5C23.9531 23.9108 18.6929 30.5 12.4531 30.5C6.21334 30.5 0.953125 23.9108 0.953125 15.5C0.953125 7.08915 6.21334 0.5 12.4531 0.5Z" fill="#EDEDED" stroke="black"/>
+        </svg>
       </div>
     </div>
   </div>
@@ -152,6 +244,9 @@ onMounted(() => {
     background-color: #fff;
     position: relative;
   }
+  #eggmangame:active {
+    cursor: grabbing;
+  }
 
   .container {
     --container-margin: 21px;
@@ -237,5 +332,16 @@ onMounted(() => {
     font-size: 12px;
     font-family: 'Press Start 2P', monospace;
     letter-spacing: 0.5px;
+  }
+
+  .draggable-egg {
+    position: fixed;
+    pointer-events: none;
+    z-index: 1000;
+    transform: translate(-50%, -50%);
+  }
+
+  .eggs {
+    cursor: grab;
   }
 </style>
