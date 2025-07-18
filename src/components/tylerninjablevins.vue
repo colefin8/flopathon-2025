@@ -1,6 +1,6 @@
 <script setup>
 import { ref, watch, onMounted, onUnmounted, computed } from 'vue';
-import * as Tone from 'tone';
+// import * as Tone from 'tone'; // Remove Tone.js import
 
 // --- Reactive State Variables ---
 const keys = ref(3); // Starting keys
@@ -22,56 +22,88 @@ const sliderShift = ref({ x: 0, y: 0 });
 const flickerVisible = ref(true);
 
 // Template refs
-const audioPlayerRef = ref(null);
+const youtubePlayerContainerRef = ref(null); // Ref for the YouTube player div
 
-// Internal refs for Tone.js
-let synth = null;
-let popSynth = null;
-let lootSound = null;
-let keySound = null;
+// Internal refs for YouTube Player
+let youtubePlayer = null; // YouTube player instance
 
-// --- Audio Setup (using Tone.js) ---
-onMounted(async () => {
-  await Tone.start();
-  synth = new Tone.Synth().toDestination();
-  popSynth = new Tone.NoiseSynth({
-    noise: { type: 'white' },
-    envelope: { attack: 0.001, decay: 0.05, sustain: 0, release: 0.05 }
-  }).toDestination();
-  lootSound = new Tone.Synth({
-    oscillator: { type: "sine" },
-    envelope: { attack: 0.01, decay: 0.2, sustain: 0, release: 0.2 }
-  }).toDestination();
-  keySound = new Tone.MembraneSynth().toDestination();
+const YOUTUBE_VIDEO_ID = 'dQw4w9WgXcQ'; // Example YouTube video ID (Rick Astley - Never Gonna Give You Up)
+const YOUTUBE_PLAYER_WIDTH = 1; // Set to 1px to hide the player visually
+const YOUTUBE_PLAYER_HEIGHT = 1; // Set to 1px to hide the player visually
 
-  console.log("AudioContext initialized and Tone.js ready.");
+// --- YouTube Player API Loading and Initialization ---
+// Define the global callback function that the YouTube API will call
+const initYoutubePlayer = () => {
+  youtubePlayer = new window.YT.Player(youtubePlayerContainerRef.value, {
+    videoId: YOUTUBE_VIDEO_ID,
+    width: YOUTUBE_PLAYER_WIDTH,
+    height: YOUTUBE_PLAYER_HEIGHT,
+    playerVars: {
+      autoplay: 1, // Autoplay the video
+      controls: 0, // Hide YouTube controls
+      loop: 1, // Loop the video
+      playlist: YOUTUBE_VIDEO_ID, // Required for loop to work with a single video
+      disablekb: 1, // Disable keyboard controls
+      modestbranding: 1, // Hide YouTube logo
+      rel: 0, // Do not show related videos
+      playsinline: 1, // Play inline on iOS
+    },
+    events: {
+      onReady: (event) => {
+        event.target.setVolume(actualVolume.value); // Set initial volume
+        if (isMuted.value) {
+          event.target.mute();
+        } else {
+          event.target.unMute();
+        }
+        event.target.playVideo(); // Ensure video plays
+        console.log("YouTube Player Ready and playing.");
+      },
+      onStateChange: (event) => {
+        // If video ends, and loop is 1, it should restart automatically
+        // This can be used for debugging player state if needed
+      }
+    }
+  });
+};
 
-  // Set initial volume for the HTML audio element
-  if (audioPlayerRef.value) {
-    audioPlayerRef.value.volume = actualVolume.value / 100;
+onMounted(() => {
+  window.onYouTubeIframeAPIReady = initYoutubePlayer; // Define global callback FIRST
+
+  if (window.YT && window.YT.Player) { // Check if API is already loaded
+    initYoutubePlayer(); // If loaded, initialize immediately
+  } else {
+    // Otherwise, load the script
+    const tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    const firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
   }
 
   // Start key regeneration
   startKeyRegen();
 });
 
-// Watch for changes in actualVolume or isMuted to update Tone.js synth volume
+// Watch for changes in actualVolume or isMuted to update YouTube player volume
 watch([actualVolume, isMuted], ([newActualVolume, newIsMuted]) => {
-  if (synth) {
-    const db = (newActualVolume === 0 || newIsMuted) ? -Infinity : Tone.gainToDb(newActualVolume / 100);
-    synth.volume.value = db;
-  }
-  if (audioPlayerRef.value) {
-    audioPlayerRef.value.volume = newIsMuted ? 0 : newActualVolume / 100;
+  // Update YouTube player volume
+  if (youtubePlayer && typeof youtubePlayer.setVolume === 'function') {
+    youtubePlayer.setVolume(newActualVolume);
+    if (newIsMuted) {
+      youtubePlayer.mute();
+    } else {
+      youtubePlayer.unMute();
+    }
   }
 });
 
-// Clean up Tone.js synths on component unmount
+// Clean up YouTube Player on component unmount
 onUnmounted(() => {
-  if (synth) synth.dispose();
-  if (popSynth) popSynth.dispose();
-  if (lootSound) lootSound.dispose();
-  if (keySound) keySound.dispose();
+  if (youtubePlayer && typeof youtubePlayer.destroy === 'function') {
+    youtubePlayer.destroy(); // Destroy the YouTube player instance
+  }
+  // Remove the global callback to prevent issues if component remounts
+  delete window.onYouTubeIframeAPIReady;
 });
 
 // --- Key Regeneration Logic ---
@@ -84,7 +116,7 @@ const startKeyRegen = () => {
       currentRegenTime.value--;
       if (currentRegenTime.value <= 0) {
         keys.value++;
-        keySound.triggerAttackRelease("C4", "8n"); // Play a little sound when a key regenerates
+        // keySound.triggerAttackRelease("C4", "8n"); // Tone.js sound removed
         currentRegenTime.value = keyRegenCooldown;
         if (keys.value >= maxKeys) {
           clearInterval(regenInterval);
@@ -131,6 +163,11 @@ onMounted(() => {
     sliderPosition.value = newVol;
     isMuted.value = false;
     console.log("App focused, volume reset to random.");
+    // Also reset YouTube player volume
+    if (youtubePlayer && typeof youtubePlayer.setVolume === 'function') {
+      youtubePlayer.setVolume(newVol);
+      youtubePlayer.unMute();
+    }
   };
 
   window.addEventListener('focus', handleWindowFocus);
@@ -146,7 +183,7 @@ const openLootBox = () => {
 
   keys.value--;
   isOpeningBox.value = true;
-  lootSound.triggerAttackRelease("C5", "8n"); // Play opening sound
+  // lootSound.triggerAttackRelease("C5", "8n"); // Tone.js sound removed
 
   // Start key regeneration if it was stopped
   if (!isRegenActive.value) {
@@ -183,14 +220,24 @@ const openLootBox = () => {
     setTimeout(() => {
       // Brief jump to extreme before settling (Terrible UX: Misleading Auditory Feedback)
       const jumpVolume = Math.random() < 0.5 ? 0 : 100;
-      actualVolume.value = jumpVolume;
-      if (popSynth) popSynth.triggerAttackRelease("8n");
+      // if (popSynth) popSynth.triggerAttackRelease("8n"); // Tone.js sound removed
 
-      setTimeout(() => {
-        actualVolume.value = newVolumeValue;
-        volume.value = newVolumeValue; // Update displayed volume
-        sliderPosition.value = newVolumeValue; // Update visual slider
-      }, 200); // Settle after 200ms
+      // Directly update YouTube player volume
+      if (youtubePlayer && typeof youtubePlayer.setVolume === 'function') {
+        youtubePlayer.setVolume(jumpVolume); // Jump volume
+        setTimeout(() => {
+          youtubePlayer.setVolume(newVolumeValue); // Settle volume
+          if (isMuted.value) { // Re-apply mute state if it was toggled
+            youtubePlayer.mute();
+          } else {
+            youtubePlayer.unMute();
+          }
+        }, 200);
+      }
+
+      actualVolume.value = newVolumeValue;
+      volume.value = newVolumeValue; // Update displayed volume
+      sliderPosition.value = newVolumeValue; // Update visual slider
       isOpeningBox.value = false;
     }, delay);
   }, 1500); // Animation duration for opening box
@@ -253,6 +300,11 @@ const sliderHandleClasses = computed(() => ({
           {{ lootBoxResult }}
         </div>
 
+        <!-- YouTube Player Container -->
+        <!-- The YouTube iframe will be injected here by the API -->
+        <div ref="youtubePlayerContainerRef" class="youtube-player-container-hidden"></div>
+
+
         <!-- Slider Track (Visual representation only, not interactive) -->
         <div
           ref="sliderRef"
@@ -289,9 +341,6 @@ const sliderHandleClasses = computed(() => ({
         >
           {{ isOpeningBox ? 'Opening...' : 'Open Loot Box!' }}
         </button>
-
-        <!-- Hidden audio element for continuous sound -->
-        <audio ref="audioPlayerRef" autoPlay loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
       </div>
       <p class="warning-text">
         (Warning: This is intentionally bad UX for a hackathon. Do not use in production!)
@@ -465,5 +514,15 @@ const sliderHandleClasses = computed(() => ({
 .loot-box-button:disabled {
   opacity: 0.5; /* disabled:opacity-50 */
   cursor: not-allowed; /* disabled:cursor-not-allowed */
+}
+
+/* YouTube Player Container Styling */
+.youtube-player-container-hidden { /* Changed class name to reflect hidden state */
+  position: absolute; /* Position absolutely to take it out of normal flow */
+  left: -9999px; /* Move far off-screen */
+  top: -9999px; /* Move far off-screen */
+  width: 1px; /* Minimal width */
+  height: 1px; /* Minimal height */
+  overflow: hidden; /* Ensure nothing is visible */
 }
 </style>
