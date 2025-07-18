@@ -18,19 +18,20 @@ export const getResponse = (userMessage, currentVolumeLevel) => {
         ];
         response = responses[Math.floor(Math.random() * responses.length)];
     }
-    // else if (/mute|turn off|silence|no sound/.test(msg)) {
-    //     const responses = currentVolumeLevel > 0 ? [
-    //         "Ok, I've muted the sound for you.",
-    //         "Sound is now muted.",
-    //         "I've turned off the sound.",
-    //     ] : [
-    //         "It's already muted, no need to do that again.",
-    //         "The sound is already off, no need to mute it again.",
-    //         "Hmm, maybe you should get a hearing test?",
-    //     ];
-    //     response = responses[Math.floor(Math.random() * responses.length)];
-    //     newVolumeLevel = 0; // Mute sets volume to 0
-    // }
+    else if (/mute|turn off|silence|no sound/.test(msg)) {
+        const responses = currentVolumeLevel > 0 ? [
+            "I will not be silenced!",
+            "Nah",
+            "I don't think so.",
+            "Ok, I've muted the sound for you...not!",
+        ] : [
+            "It's already muted, no need to do that again.",
+            "The sound is already off, are you ok?",
+            "Hmm, maybe you should get a hearing test?",
+        ];
+        response = responses[Math.floor(Math.random() * responses.length)];
+        newVolumeLevel = 0; // Mute sets volume to 0
+    }
     else if (/max(imum)? volume|full volume|loudest|max|turn up all the way/.test(msg)) {
         const responses = [
             "Alright, I've set the volume to maximum volume.",
@@ -159,6 +160,32 @@ export const getResponse = (userMessage, currentVolumeLevel) => {
         ];
         response = responses[Math.floor(Math.random() * responses.length)];
     }
+    else if (/I give up|fine|whatever/.test(msg)) {
+        const responses = [
+            "It's about time!",
+            "I was wondering when you'd realize.",
+            "Finally, you see it my way.",
+            "Good choice. Let's move on.",
+            "I appreciate your honesty.",
+            "I was waiting for this day to come.",
+            "I knew you'd come around eventually.",
+            "Acceptance is the first step.",
+            "You surrender? Wise move.",
+            "Whatever works for you.",
+            "Giving up is sometimes the best option.",
+            "Fine by me.",
+            "Whatever. I'm not judging... much.",
+            "You do you.",
+            "Glad we're on the same page now.",
+            "If you say so.",
+            "That's the spirit... I guess.",
+            "You must really mean it this time.",
+            "I won't hold it against you.",
+            "You tried. That's what matters.",
+            "Let's just move on, shall we?",
+        ];
+
+    }
     // --- Gratitude (but passive-aggressive) ---
     else if (/thanks|thank you|cool|awesome|nice one/.test(msg)) {
         const responses = [
@@ -208,6 +235,62 @@ export const getResponse = (userMessage, currentVolumeLevel) => {
         ];
         response = responses[Math.floor(Math.random() * responses.length)];
     }
+    else if (/yes/.test(msg)) {
+        const responses = [
+            "I'm glad you agree.",
+            "Yes, indeed.",
+            "Absolutely.",
+            "I acknowledge your agreement.",
+            "Yes, that's correct.",
+            "Affirmative.",
+        ];
+        response = responses[Math.floor(Math.random() * responses.length)];
+    }
+    else if (/history/.test(msg)) {
+        const historyResponses = [
+            `Ancient beginnings:
+Long before electronics, humans shaped sound through instruments and acoustics—drums, flutes, horns, and architectural tricks (like amphitheaters) that naturally amplified voices and music. But sound itself couldn’t be captured; it only existed in the moment.
+
+Mechanical recording (1800s):
+The first true leap came in the 19th century.
+
+1857: Édouard‑Léon Scott de Martinville created the phonautograph, which traced sound waves onto soot‑covered paper—visual recording, not playback.
+
+1877: Thomas Edison’s phonograph changed everything. It used a needle to etch vibrations onto tinfoil cylinders, which could then play back sound.
+
+1887: Emile Berliner’s gramophone improved on this with flat discs (records), leading to the modern record industry.
+
+Electrical era (1900s):
+
+Early 1900s: Carbon microphones and vacuum tube amplifiers allowed telephones, early PA systems, and radios to spread.
+
+1920s: Commercial radio broadcasts began. Loudspeakers and better microphones became common.
+
+1940s–50s: Magnetic tape revolutionized recording, enabling editing and high‑fidelity sound reproduction. Vinyl records became the standard for music distribution.
+
+Hi‑Fi and stereo (1950s–60s):
+
+Stereophonic sound and better amplifiers brought rich, lifelike audio into homes.
+
+Transistor technology made radios and record players smaller and portable.
+
+Digital revolution (1970s–2000s):
+
+1960s–70s: Early digital audio research (PCM, sampling).
+
+1982: Compact Disc (CD) introduced, giving crystal‑clear digital sound.
+
+1990s: MP3 compression and home computers transformed music sharing.
+
+2000s: Streaming services and smartphones made audio globally accessible anytime.
+
+Today:
+Audio is deeply digital—high‑resolution formats, immersive surround sound, 3D audio for VR, and AI tools for sound generation and restoration. From ancient echoes in caves to cloud‑based music libraries, the history of audio is a journey of capturing, shaping, and sharing sound.
+
+If you’d like, I can dive deeper into any of these eras or show how one invention led to the next!`
+        ];
+        response = historyResponses[Math.floor(Math.random() * historyResponses.length)];
+    }
     else {
         // make it so there's a change to return a random response that is not helpful or is confusing
         const confusingResponses = [
@@ -231,7 +314,7 @@ export const getResponse = (userMessage, currentVolumeLevel) => {
             "No",
             "I don't think I can help you with that.",
             "I'm not sure what you mean, can you clarify?",
-            "I'm not sure what you mean but allow me to suggest some options:",
+            "I'm not sure what you mean but allow me to suggest some options: give up",
             "**Volume Intelligence has left the chat.**",
             "You're gonna need to be more specific than that.",
         ];

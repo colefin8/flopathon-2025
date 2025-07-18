@@ -41,7 +41,7 @@ const startMusic = () => {
                 message: "Hmm, you have an interesting taste in music...",
             });
             isLoading.value = false; // Reset loading state
-        }, 2000);
+        }, 1000);
         firstInteraction.value = false; // Prevent auto-play on subsequent interactions
     }
 };
