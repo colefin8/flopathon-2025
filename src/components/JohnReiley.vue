@@ -31,9 +31,6 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: url('@/assets/volume-intelligence-background.png');
-    background-size: cover;
-    background-position: center;
     z-index: -1; /* Ensure it stays behind other content */
 }
 
