@@ -6,8 +6,9 @@ import { Rive } from "@rive-app/canvas";
 
 const message = ref('');
 const volume = ref(0);
-const eggCount = ref(20);
+const eggCount = ref(25);
 const canvasRef = ref(null);
+const showNote = ref(true);
 
 // EggMan position for animation
 const eggmanLeft = ref(30);
@@ -93,6 +94,9 @@ onMounted(() => {
 
   document.addEventListener('mousemove', onMouseMove);
   document.addEventListener('mouseup', onMouseUp);
+
+  // temp
+  setTimeout(winGame, 1000);
 });
 
 watch(() => riveInputs.isEating, (newVal) => {
@@ -115,11 +119,13 @@ async function winGame() {
   message.value = 'Congrats big boy';
   riveInstance?.pause();
   await delay(2000);
+  showNote.value = false;
   await victoryWalk(4000);
   isWalkingInput.value = false;
   riveInputs.isPantsTime = true;
-  await delay(2000);
-  message.value = 'You’re looking at an Good Egg.';
+  await delay(3000);
+  message.value = "You're looking at an Good Egg.";
+  showNote.value = true;
 }
 
 async function victoryWalk(duration) {
@@ -177,7 +183,7 @@ onUnmounted(() => {
     <div class="container fancy-border">
       <h1 class="title">FEED EGGS</h1>
       <VolumeSlider :volume="volume" class="volume-area" />
-      <Note :volume="volume" :message="message" class="note-area" />
+      <Note :volume="volume" :message="message" :show-note="showNote" class="note-area" />
       <div class="interactive-area">
         <!-- eggman -->
         <canvas

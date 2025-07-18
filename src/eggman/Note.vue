@@ -10,6 +10,10 @@ const props = defineProps({
   message: {
     type: String,
     default: null
+  },
+  showNote: {
+    type: Boolean,
+    default: true
   }
 })
 
@@ -19,7 +23,7 @@ const displayText = computed(() => {
 </script>
 
 <template>
-  <div class="note fancy-border">
+  <div class="note fancy-border" v-show="showNote">
     <div class="note-content">
       {{ displayText }}
     </div>
