@@ -311,6 +311,8 @@ onUnmounted(() => {
     position: absolute;
     bottom: 119px;
     left: 30px;
+    width: 175px;
+    height: 175px;
   }
 
   .basket-area {

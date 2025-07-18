@@ -45,5 +45,6 @@ const displayText = computed(() => {
   font-size: 12px;
   position: relative;
   top: 5px;
+  user-select: none;
 }
 </style>
