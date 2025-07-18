@@ -94,7 +94,7 @@ const loadTargetImage = () => {
         ? parseInt(imageIndexFromStorage)
         : Math.floor(Math.random() * POSSIBLE_IMAGES.length);
     const imageName = POSSIBLE_IMAGES[imageIndex];
-    img.src = `src/components/TaylorPlewe/${imageName}`;
+    img.src = `../assets/${imageName}`;
 
     // rotate through images when user refreshes
     imageIndex = (imageIndex + 1) % POSSIBLE_IMAGES.length;
