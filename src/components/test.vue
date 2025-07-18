@@ -5,6 +5,7 @@
 
         <button @click="showStorage = true">Open Storage Box</button>
         <button @click="showStore = true">Open Store</button>
+        <button @click="openEarnProgram">Open Earn Program</button>
         <!-- Hidden YouTube Player -->
         <div style="width:0;height:0;overflow:hidden;position:absolute;">
           <div id="ytplayer"></div>
@@ -40,6 +41,19 @@
             <p>Storage Size: {{ storageSize }}</p>
             <p>Loot Boxes: {{ lootBoxCount }}</p>
             <p>Keys: {{ keyCount }}</p>
+          </div>
+        </div>
+        <!-- Earn Program Modal -->
+        <div v-if="showEarnModal" class="modal">
+          <div class="modal-content">
+            <span class="close" @click="showEarnModal = false">&times;</span>
+            <h3>Earn Points</h3>
+            <p>{{ earnQuestions[earnIdx].q }}</p>
+            <input v-model="earnAnswer" :disabled="earnAwarded" placeholder="Your answer..." />
+            <button @click="submitEarnAnswer" :disabled="earnAwarded || !earnAnswer.trim()">Submit</button>
+            <p v-if="earnAwarded" style="color:green;">You earned {{ earnQuestions[earnIdx].points }} points!</p>
+            <button v-if="earnAwarded" @click="nextEarnQuestion">Continue</button>
+            <p v-if="earnAwarded && earnIdx === earnQuestions.length - 1" style="color:blue;">All questions complete!</p>
           </div>
         </div>
     </div>
@@ -91,6 +105,42 @@ const showStore = ref(false);
 const openLootBoxIdx = ref(null); // index of loot box to open
 const storageSize = ref(15);
 const points = ref(8); // Start with 8 points
+// --- Earn Program State ---
+const earnQuestions = [
+  { q: 'What is your favorite color?', points: 5 },
+  { q: 'What city were you born in?', points: 10 },
+  { q: 'What is your biggest dream?', points: 15 },
+  { q: 'Describe a challenge you overcame.', points: 20 },
+  { q: 'What is something you have never told anyone?', points: 30 }
+];
+const showEarnModal = ref(false);
+const earnAnswer = ref('');
+const earnAwarded = ref(false);
+const earnIdx = ref(0);
+
+function openEarnProgram() {
+  showEarnModal.value = true;
+  earnAnswer.value = '';
+  earnAwarded.value = false;
+  earnIdx.value = 0;
+}
+
+function submitEarnAnswer() {
+  if (earnAnswer.value.trim() !== '') {
+    points.value += earnQuestions[earnIdx.value].points;
+    earnAwarded.value = true;
+  }
+}
+
+function nextEarnQuestion() {
+  if (earnIdx.value < earnQuestions.length - 1) {
+    earnIdx.value++;
+    earnAnswer.value = '';
+    earnAwarded.value = false;
+  } else {
+    showEarnModal.value = false;
+  }
+}
 
 // --- Item Types and Initial Items ---
 const ITEM_TYPES = {
@@ -306,6 +356,7 @@ function handleSlotClick(idx) {
     // (do not set isPlaying to true here)
   }
 }
+
 
 </script>
 
