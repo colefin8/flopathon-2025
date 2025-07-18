@@ -33,6 +33,8 @@ const displayText = computed(() => {
   border-left: var(--line-width) solid black;
   border-right: var(--line-width) solid black;
   border-bottom: var(--line-width) solid black;
+  padding: 21px;
+  line-height: 20px;
   width: 343px;
   min-height: 172px;
   display: flex;

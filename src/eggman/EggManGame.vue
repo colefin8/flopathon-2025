@@ -1,15 +1,23 @@
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { ref, reactive, onMounted, onUnmounted, watch } from 'vue';
 import VolumeSlider from './VolumeSlider.vue';
 import Note from './Note.vue';
 import { Rive } from "@rive-app/canvas";
 
+const message = ref('');
 const volume = ref(0);
 const eggCount = ref(20);
 const canvasRef = ref(null);
 
-// data binding for eggman state machine input
-const isEating = ref(false);
+// EggMan position for animation
+const eggmanLeft = ref(30);
+let eggmanAnimationFrame = null;
+
+const riveInputs = reactive({
+  isEating: false,
+  isWalking: false,
+  isPantsTime: false,
+});
 
 // dragging state
 const isDragging = ref(false);
@@ -49,12 +57,12 @@ const onMouseUp = () => {
         eggY >= rect.top &&
         eggY <= rect.bottom
       ) {
-        isEating.value = true;
+        riveInputs.isEating = true;
         // increase volume by a random integer between 1 and 6, max 100
         const increment = Math.floor(Math.random() * 6) + 1;
         volume.value = Math.min(volume.value + increment, 100);
         setTimeout(() => {
-          isEating.value = false;
+          riveInputs.isEating = false;
         }, 800);
       }
     }
@@ -65,6 +73,8 @@ const onMouseUp = () => {
 
 let riveInstance = null;
 let isEatingInput = null;
+let isWalkingInput = null;
+let isPantsTimeInput = null;
 
 onMounted(() => {
   riveInstance = new Rive({
@@ -74,12 +84,10 @@ onMounted(() => {
     stateMachines: "State Machine 1",
     onLoad: () => {
       riveInstance.resizeDrawingSurfaceToCanvas();
-      // Data binding: find the isEating input and bind it to the ref
       const inputs = riveInstance.stateMachineInputs("State Machine 1");
       isEatingInput = inputs.find(input => input.name === "isEating");
-      if (isEatingInput) {
-        isEatingInput.value = isEating.value;
-      }
+      isWalkingInput = inputs.find(input => input.name === "isWalking");
+      isPantsTimeInput = inputs.find(input => input.name === "isPantsTime" );
     },
   });
 
@@ -87,12 +95,74 @@ onMounted(() => {
   document.addEventListener('mouseup', onMouseUp);
 });
 
-// Watch for changes to isEating and update the Rive input
-watch(isEating, (newVal) => {
+watch(() => riveInputs.isEating, (newVal) => {
   if (isEatingInput) {
     isEatingInput.value = newVal;
   }
 });
+watch(() => riveInputs.isWalking, (newVal) => {
+  if (isWalkingInput) {
+    isWalkingInput.value = newVal;
+  }
+});
+watch(() => riveInputs.isPantsTime, (newVal) => {
+  if (isPantsTimeInput) {
+    isPantsTimeInput.value = newVal;
+  }
+});
+
+async function winGame() {
+  message.value = 'Congrats big boy';
+  riveInstance?.pause();
+  await delay(2000);
+  await victoryWalk(4000);
+  isWalkingInput.value = false;
+  riveInputs.isPantsTime = true;
+  await delay(2000);
+  message.value = 'You’re looking at an Good Egg.';
+}
+
+async function victoryWalk(duration) {
+  riveInstance?.play();
+  riveInputs.isEating = false;
+  riveInputs.isWalking = true;
+  // Animate EggMan to center over 4 seconds
+  const interactiveArea = document.querySelector('.interactive-area');
+  const eggman = canvasRef.value;
+  if (!interactiveArea || !eggman) return;
+
+  const currentLeft = eggman.offsetLeft;
+  const targetLeft = (interactiveArea.clientWidth / 2) - (eggman.offsetWidth / 2);
+
+  const start = performance.now();
+  const initialLeft = currentLeft;
+
+  if (eggmanAnimationFrame) {
+    cancelAnimationFrame(eggmanAnimationFrame);
+    eggmanAnimationFrame = null;
+  }
+
+  function animateEggman(now) {
+    const elapsed = now - start;
+    const progress = Math.min(elapsed / duration, 1);
+    eggmanLeft.value = initialLeft + (targetLeft - initialLeft) * progress;
+    if (progress < 1) {
+      eggmanAnimationFrame = requestAnimationFrame(animateEggman);
+    } else {
+      eggmanLeft.value = targetLeft;
+      eggmanAnimationFrame = null;
+    }
+  }
+  requestAnimationFrame(animateEggman);
+
+  return new Promise((resolve) => {
+    setTimeout(resolve, duration);
+  });
+}
+
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 onUnmounted(() => {
   document.removeEventListener('mousemove', onMouseMove);
@@ -107,10 +177,15 @@ onUnmounted(() => {
     <div class="container fancy-border">
       <h1 class="title">FEED EGGS</h1>
       <VolumeSlider :volume="volume" class="volume-area" />
-      <Note :volume="volume" class="note-area" />
+      <Note :volume="volume" :message="message" class="note-area" />
       <div class="interactive-area">
         <!-- eggman -->
-        <canvas id="eggman" ref="canvasRef" width="175" height="175"></canvas>
+        <canvas
+          id="eggman"
+          ref="canvasRef"
+          width="175"
+          height="175"
+          :style="{ left: eggmanLeft + 'px' }"></canvas>
 
         <div class="basket-area">
           <svg class="eggs" width="87" height="53" viewBox="0 0 87 53" fill="none" xmlns="http://www.w3.org/2000/svg" @mousedown="grabEgg">
@@ -309,7 +384,7 @@ onUnmounted(() => {
 
   #eggman {
     position: absolute;
-    bottom: 119px;
+    bottom: 69px;
     left: 30px;
     width: 175px;
     height: 175px;
@@ -318,7 +393,7 @@ onUnmounted(() => {
   .basket-area {
     position: absolute;
     right: 85px;
-    bottom: 101px;
+    bottom: 51px;
   }
 
   .eggs {
