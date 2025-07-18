@@ -51,14 +51,14 @@ export const getResponse = (userMessage, currentVolumeLevel) => {
     }
     else if (/increase|turn.*up|raise|louder/.test(msg)) {
         const responses = currentVolumeLevel < 100 ? [
-            "Sounds good, I've increased the volume by 1%.",
-            "Volume increased by 1%.",
+            "Sounds good, I've increased the volume by an unspecified amount.",
+            "Volume increased by an unspecified amount.",
             "I've turned up the volume a little.",
             "I'm gradually increasing the volume.",
-            "I've raised the volume by 1%.",
+            "I've raised the volume by a number.",
             "I've made the sound a bit louder.",
             "I've turned up the volume slightly.",
-            "I've nudged the volume up by 1%.",
+            "I've nudged the volume up by some amount.",
         ] : [
             "The volume is already at maximum. Can't go higher than 100%.",
             "The volume is already at its highest setting.",
@@ -70,7 +70,8 @@ export const getResponse = (userMessage, currentVolumeLevel) => {
             "If you want it any louder, you'll need to get a sound system.",
         ];
         response = responses[Math.floor(Math.random() * responses.length)];
-        newVolumeLevel = Math.min(currentVolumeLevel + 1, 100); // Increase volume by 1% but not above 100%
+        const randomPercentage = Math.random() * (100 - currentVolumeLevel);
+        newVolumeLevel = Math.min(currentVolumeLevel + randomPercentage, 100); // Increase volume by random percentage but not above 100%
     }
     else if (/decrease|turn.*down|lower|quieter/.test(msg)) {
         const responses = currentVolumeLevel > 0 ? [
@@ -93,13 +94,17 @@ export const getResponse = (userMessage, currentVolumeLevel) => {
             "Hmm, I'm not sure about that.",
         ];
         response = responses[Math.floor(Math.random() * responses.length)];
-        newVolumeLevel = Math.max(currentVolumeLevel - 1, 0); // Decrease volume by 1% but not below 0%
+        // get a certain percentage of the current volume level
+        // const randomPercentage = Math.random() * currentVolumeLevel;
+        newVolumeLevel = Math.max(currentVolumeLevel - 1, 0); // Decrease volume by random percentage but not below 0%
     }
-    else if (/how.*volume|adjust.*volume|change.*volume/.test(msg)) {
+    else if (/how.*volume|adjust.*volume|change.*volume|how.*work/.test(msg)) {
         const responses = [
             "You can adjust the volume by asking me.",
             "To change the volume, just ask me.",
             "Adjust the volume by asking me!.",
+            "To change the volume, just type a number with a percentage sign.",
+            "You're at the right place. Just ask me.",
         ];
         response = responses[Math.floor(Math.random() * responses.length)];
     }
@@ -118,6 +123,12 @@ export const getResponse = (userMessage, currentVolumeLevel) => {
             "I'm not sure how to respond to that.",
             "I don't understand what you're asking.",
             "That's a good question, but I don't have an answer.",
+            "Hmm, I'm not sure about that.",
+            "Are you trying to stump me with a riddle?",
+            "That's a tricky one, let me think...",
+            "Hmm, I'm not sure what you're asking.",
+            "I'll have to get back to you on that.",
+            "That's a tough one, let me ponder for a moment. No.",
         ];
         response = responses[Math.floor(Math.random() * responses.length)];
     }
@@ -134,6 +145,7 @@ export const getResponse = (userMessage, currentVolumeLevel) => {
             "Have you tried turning it off and on again?",
             "I'm not sure what you mean, have you tried just waiting it out?",
             "Sometimes I just like playing hard to get.",
+            "Can you please use your words?",
             "What if you just pretend the sound doesn't exist?",
             "Have you tried asking me nicely?",
             "Maybe the sound is just playing hide and seek?",

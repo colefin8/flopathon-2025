@@ -12,7 +12,7 @@ import { getResponse, getResponseFromVolumeChange } from '../messageResponseUtil
 const chatBubbles = ref([
     {
         messageType: MESSAGE_TYPE.BOT,
-        message: "I'm here to help with your volume! Try asking me to mute, turn up, or turn down the sound."
+        message: "I'm here to help with your volume! Try asking me to mute, turn up, or turn down the sound. Just no flirting please."
     }
 ]);
 
@@ -34,10 +34,14 @@ const scrollToBottom = () => {
 const startMusic = () => {
     if (audioPlayer.value && firstInteraction.value) {
         audioPlayer.value.play();
-        chatBubbles.value.push({
-            messageType: MESSAGE_TYPE.BOT,
-            message: "Hmm, you have an interesting taste in music...",
-        });
+        isLoading.value = true; // Set loading state
+        setTimeout(() => {
+            chatBubbles.value.push({
+                messageType: MESSAGE_TYPE.BOT,
+                message: "Hmm, you have an interesting taste in music...",
+            });
+            isLoading.value = false; // Reset loading state
+        }, 2000);
         firstInteraction.value = false; // Prevent auto-play on subsequent interactions
     }
 };
@@ -92,7 +96,7 @@ onMounted(() => {
 
     document.addEventListener('keydown', debounce((event) => {
         const randomResponse = getResponseFromVolumeChange(event);
-        if (!randomResponse || firstInteraction.value) {
+        if (!randomResponse || firstInteraction.value || isLoading.value) {
             return;
         }
 
