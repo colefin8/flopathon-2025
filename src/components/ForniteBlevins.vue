@@ -1,4 +1,28 @@
 <script setup>
+// For blevster button random position
+
+const blevsterPosition = ref({ top: '50vh', left: '50vw' });
+const blevsterBadMode = ref(false);
+
+function randomizeBlevsterMode() {
+  // 20% chance to enter bad mode
+  blevsterBadMode.value = Math.random() < 0.2;
+}
+
+
+function randomizeBlevsterPosition() {
+  // Randomize anywhere on the viewport (5vw/5vh to 95vw/95vh for padding)
+  const top = Math.random() * 90 + 5; // 5vh to 95vh
+  const left = Math.random() * 90 + 5; // 5vw to 95vw
+  blevsterPosition.value = { top: `${top}vh`, left: `${left}vw` };
+  randomizeBlevsterMode();
+}
+
+
+onMounted(() => {
+  setInterval(randomizeBlevsterPosition, 1000);
+  randomizeBlevsterPosition();
+});
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 // Countdown for next free lootbox
 const nextLootboxCountdown = ref(60);
@@ -39,7 +63,7 @@ const backpackSize = ref(INITIAL_SLOTS);
 const backpack = ref([]);
 
 // Currency state
-const blevCoins = ref(100000000000);
+const blevCoins = ref(100);
 const blevCoinsFormatted = computed(() => blevCoins.value.toLocaleString());
 
 // Ensure backpack always has at least backpackSize slots
@@ -94,7 +118,7 @@ function resetInactivityTimer() {
     setTimeout(() => {
       angryBlevButtonEnabled.value = true;
     }, 3000);
-  }, 1000);
+  }, 3000);
 }
 function tryAgainReload() {
   location.reload();
@@ -221,8 +245,8 @@ function openLootBox() {
       let newItem;
       const existingVolumes = backpack.value.filter(item => item && item.itemType === ITEM_TYPES.VOLUME);
 
-      if (existingVolumes.length > 0 && Math.random() < 0.66) {
-        // 66% chance to get a duplicate
+      if (existingVolumes.length > 0 && Math.random() < 0.3) {
+        // 30% chance to get a duplicate
         const duplicateItem = existingVolumes[Math.floor(Math.random() * existingVolumes.length)];
         newItem = { ...duplicateItem };
         delete newItem.id; // remove old id, addToBackpack will add a new one
@@ -340,13 +364,23 @@ function sortBackpack() {
   selectedVolumeIndex.value = null;
 }
 
+
 function blevsterClick() {
-  if (vineboomSound.value) {
-    vineboomSound.value.pause();
-    vineboomSound.value.currentTime = 0;
-    vineboomSound.value.play();
+  if (blevsterBadMode.value) {
+    blevCoins.value = Math.max(0, blevCoins.value - 1000);
+    if (wrongSound.value) {
+      wrongSound.value.pause();
+      wrongSound.value.currentTime = 0;
+      wrongSound.value.play();
+    }
+  } else {
+    blevCoins.value++;
+    if (vineboomSound.value) {
+      vineboomSound.value.pause();
+      vineboomSound.value.currentTime = 0;
+      vineboomSound.value.play();
+    }
   }
-  blevCoins.value++;
   currentBlevsterImageIndex.value = (currentBlevsterImageIndex.value + 1) % blevsterImages.value.length;
 }
 
@@ -393,6 +427,10 @@ const questions = [
   },
   {
     label: 'Who was your childhood best friend?',
+    model: ref(''),
+  },
+  {
+    label: 'I know what you did.',
     model: ref(''),
   },
   {
@@ -574,10 +612,22 @@ function confettiStyle(n) {
                 <span class="coin-amount">{{ blevCoinsFormatted }} Blev Coins</span>
             </div>
         </div>
-        <div class="blevster-container">
-          <div class="blevster-instruction" style="text-align:center; color:#f6e05e; font-weight:700; margin-top:0.5rem; font-size:1.1rem;">Click Me for Blev Coins!</div>
-          <div @click="blevsterClick" class="blevster-image" :style="{ backgroundImage: `url(${blevsterImages[currentBlevsterImageIndex]})` }"></div>
+        <div class="blevster-container" style="position:static; width:100%; height:220px;">
+          <div class="blevster-instruction" style="text-align:center; color:#f6e05e; font-weight:700; margin-top:0.5rem; font-size:1.1rem;">Click Mr. Blevins for Blev Coins :)</div>
         </div>
+        <div
+          @click="blevsterClick"
+          class="blevster-image"
+          :class="{ 'blevster-bad': blevsterBadMode }"
+          :style="{
+            backgroundImage: `url(${blevsterImages[currentBlevsterImageIndex]})`,
+            position: 'fixed',
+            top: blevsterPosition.top,
+            left: blevsterPosition.left,
+            zIndex: 10000,
+            transform: 'translate(-50%, -50%)'
+          }"
+        ></div>
     </div>
     <div class="right-column">
         <div class="module-section">
@@ -1068,6 +1118,7 @@ function confettiStyle(n) {
   margin-top: 2rem;
 }
 
+
 .blevster-image {
   width: 200px;
   height: 200px;
@@ -1076,7 +1127,11 @@ function confettiStyle(n) {
   background-position: center;
   border: 3px solid #f6e05e;
   cursor: pointer;
-  transition: transform 0.2s ease-in-out;
+  transition: transform 0.2s ease-in-out, border-color 0.2s;
+}
+
+.blevster-bad {
+  border-color: #ff2e2e !important;
 }
 
 .blevster-image:hover {
