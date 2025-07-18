@@ -107,7 +107,7 @@ let isPantsTimeInput = null;
 
 onMounted(() => {
   riveInstance = new Rive({
-    src: "public/eggman.riv",
+    src: "/eggman.riv",
     canvas: canvasRef.value,
     autoplay: true,
     stateMachines: "State Machine 1",
