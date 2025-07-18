@@ -318,7 +318,7 @@ const calculate = () => {
                 volume = input.length - 1;
                 break;
             default:
-                volumeOutput = 'Unknown unit selected.';
+                volumeOutput.value = 'Unknown unit selected.';
             break;
         }
         selectedUnitIndex.value = (selectedUnitIndex.value + 1) % Object.keys(units).length;
