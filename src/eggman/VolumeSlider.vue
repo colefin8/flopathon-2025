@@ -29,8 +29,8 @@ const props = defineProps({
 .slider-track {
   width: 411px;
   height: 43px;
-  background-color: #000000;
-  border: 2px solid #000000;
+  background-color: var(--primary-color);
+  border: 2px solid var(--primary-color);
   position: relative;
   overflow: hidden;
 }

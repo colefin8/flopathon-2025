@@ -6,7 +6,12 @@ import { Rive } from "@rive-app/canvas";
 
 const message = ref('');
 const volume = ref(0);
+const isWarningMode = ref(false);
+const is40EggNext = ref(false);
+const isNextEggWinner = ref(false);
 const eggCount = ref(25);
+const eggmangameRef = ref(null);
+const primaryColor = ref("var(--primary-color)");
 const canvasRef = ref(null);
 const showNote = ref(true);
 
@@ -44,7 +49,7 @@ const onMouseMove = (event) => {
   }
 };
 
-const onMouseUp = () => {
+const onMouseUp = async () => {
   if (isDragging.value) {
     // check if the egg was dropped over the eggman canvas
     const canvas = canvasRef.value;
@@ -59,17 +64,32 @@ const onMouseUp = () => {
         eggY <= rect.bottom
       ) {
         riveInputs.isEating = true;
-        // increase volume by a random integer between 1 and 6, max 100
-        const increment = Math.floor(Math.random() * 6) + 1;
+        let minusEgg = 1;
+        if (is40EggNext.value) {
+          minusEgg = 40;
+          is40EggNext.value = false;
+          isNextEggWinner.value = true;
+        }
+        eggCount.value = Math.max(eggCount.value - minusEgg, 0);
+        if (eggCount.value === 0) {
+          outOfEggs();
+        }
+        // increase volume by a small random integer
+        let increment = Math.floor(Math.random() * 3) + 1;
         volume.value = Math.min(volume.value + increment, 100);
-        setTimeout(() => {
-          riveInputs.isEating = false;
-        }, 800);
+        // Hide the egg immediately after drop
+        draggedEgg.value.visible = false;
+        
+        await delay(800);
+        riveInputs.isEating = false;
+        if (isNextEggWinner.value) {
+          isNextEggWinner.value = false;
+          winGame();
+        }
       }
     }
   }
   isDragging.value = false;
-  draggedEgg.value.visible = false;
 };
 
 let riveInstance = null;
@@ -95,8 +115,6 @@ onMounted(() => {
   document.addEventListener('mousemove', onMouseMove);
   document.addEventListener('mouseup', onMouseUp);
 
-  // temp
-  setTimeout(winGame, 1000);
 });
 
 watch(() => riveInputs.isEating, (newVal) => {
@@ -117,7 +135,6 @@ watch(() => riveInputs.isPantsTime, (newVal) => {
 
 async function winGame() {
   message.value = 'Congrats big boy';
-  riveInstance?.pause();
   await delay(2000);
   showNote.value = false;
   await victoryWalk(4000);
@@ -166,6 +183,13 @@ async function victoryWalk(duration) {
   });
 }
 
+async function outOfEggs() {
+  isWarningMode.value = true;
+  riveInstance?.pause();
+  message.value = "Dude, you ran out of eggs. Would you like to buy an 80 pack of eggs?";
+  eggmangameRef.value?.style.setProperty('--primary-color', '#a00');
+}
+
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -175,15 +199,24 @@ onUnmounted(() => {
   document.removeEventListener('mouseup', onMouseUp);
 });
 
+function buyMoreEggs () {
+  isWarningMode.value = false;
+  is40EggNext.value = true;
+  riveInstance?.play();
+  message.value = '';
+  eggCount.value = 80;
+  eggmangameRef.value?.style.setProperty('--primary-color', 'black');
+};
+
 
 </script>
 
 <template>
-  <div id="eggmangame">
+  <div id="eggmangame" ref="eggmangameRef">
     <div class="container fancy-border">
       <h1 class="title">FEED EGGS</h1>
       <VolumeSlider :volume="volume" class="volume-area" />
-      <Note :volume="volume" :message="message" :show-note="showNote" class="note-area" />
+      <Note :volume="volume" :message="message" :show-note="showNote" :warning="isWarningMode" @buy-more-eggs="buyMoreEggs" class="note-area" />
       <div class="interactive-area">
         <!-- eggman -->
         <canvas
@@ -195,19 +228,19 @@ onUnmounted(() => {
 
         <div class="basket-area">
           <svg class="eggs" width="87" height="53" viewBox="0 0 87 53" fill="none" xmlns="http://www.w3.org/2000/svg" @mousedown="grabEgg">
-            <path d="M30.8869 7.85281C36.6947 10.1342 39.1816 18.1904 36.1065 26.0189C33.0313 33.8474 25.7261 38.0571 19.9184 35.7757C14.1106 33.4944 11.6237 25.4382 14.6989 17.6097C17.774 9.78114 25.0792 5.57142 30.8869 7.85281Z" fill="#EDEDED" stroke="black"/>
-            <path d="M46.8869 4.85281C52.6947 7.13419 55.1816 15.1904 52.1065 23.0189C49.0313 30.8474 41.7261 35.0571 35.9184 32.7757C30.1106 30.4944 27.6237 22.4382 30.6989 14.6097C33.774 6.78114 41.0792 2.57142 46.8869 4.85281Z" fill="#EDEDED" stroke="black"/>
-            <path d="M11.117 20.4806C16.5329 17.3818 24.371 20.4886 28.548 27.7889C32.725 35.0892 31.4317 43.4207 26.0158 46.5196C20.5998 49.6184 12.7618 46.5116 8.58478 39.2113C4.40775 31.9109 5.70111 23.5794 11.117 20.4806Z" fill="#EDEDED" stroke="black"/>
-            <path d="M31.5732 18.2921C37.7993 17.8796 43.4836 24.1066 44.0396 32.4991C44.5956 40.8915 39.7825 47.814 33.5563 48.2265C27.3302 48.6389 21.6459 42.4119 21.0899 34.0195C20.5339 25.627 25.3471 18.7046 31.5732 18.2921Z" fill="#EDEDED" stroke="black"/>
-            <path d="M55.0774 6.37326C60.9783 4.34514 68.0946 8.86679 70.8284 16.821C73.5622 24.7751 70.7293 32.7162 64.8283 34.7444C58.9273 36.7725 51.811 32.2508 49.0772 24.2967C46.3434 16.3425 49.1764 8.40139 55.0774 6.37326Z" fill="#EDEDED" stroke="black"/>
-            <path d="M58.8869 18.8528C64.6947 21.1342 67.1816 29.1904 64.1065 37.0189C61.0313 44.8474 53.7261 49.0571 47.9184 46.7757C42.1106 44.4944 39.6237 36.4382 42.6989 28.6097C45.774 20.7811 53.0792 16.5714 58.8869 18.8528Z" fill="#EDEDED" stroke="black"/>
-            <path d="M74.8869 19.8528C80.6947 22.1342 83.1816 30.1904 80.1065 38.0189C77.0313 45.8474 69.7261 50.0571 63.9184 47.7757C58.1106 45.4944 55.6237 37.4382 58.6989 29.6097C61.774 21.7811 69.0792 17.5714 74.8869 19.8528Z" fill="#EDEDED" stroke="black"/>
+            <path d="M30.8869 7.85281C36.6947 10.1342 39.1816 18.1904 36.1065 26.0189C33.0313 33.8474 25.7261 38.0571 19.9184 35.7757C14.1106 33.4944 11.6237 25.4382 14.6989 17.6097C17.774 9.78114 25.0792 5.57142 30.8869 7.85281Z" fill="#EDEDED" :stroke="primaryColor"/>
+            <path d="M46.8869 4.85281C52.6947 7.13419 55.1816 15.1904 52.1065 23.0189C49.0313 30.8474 41.7261 35.0571 35.9184 32.7757C30.1106 30.4944 27.6237 22.4382 30.6989 14.6097C33.774 6.78114 41.0792 2.57142 46.8869 4.85281Z" fill="#EDEDED" :stroke="primaryColor"/>
+            <path d="M11.117 20.4806C16.5329 17.3818 24.371 20.4886 28.548 27.7889C32.725 35.0892 31.4317 43.4207 26.0158 46.5196C20.5998 49.6184 12.7618 46.5116 8.58478 39.2113C4.40775 31.9109 5.70111 23.5794 11.117 20.4806Z" fill="#EDEDED" :stroke="primaryColor"/>
+            <path d="M31.5732 18.2921C37.7993 17.8796 43.4836 24.1066 44.0396 32.4991C44.5956 40.8915 39.7825 47.814 33.5563 48.2265C27.3302 48.6389 21.6459 42.4119 21.0899 34.0195C20.5339 25.627 25.3471 18.7046 31.5732 18.2921Z" fill="#EDEDED" :stroke="primaryColor"/>
+            <path d="M55.0774 6.37326C60.9783 4.34514 68.0946 8.86679 70.8284 16.821C73.5622 24.7751 70.7293 32.7162 64.8283 34.7444C58.9273 36.7725 51.811 32.2508 49.0772 24.2967C46.3434 16.3425 49.1764 8.40139 55.0774 6.37326Z" fill="#EDEDED" :stroke="primaryColor"/>
+            <path d="M58.8869 18.8528C64.6947 21.1342 67.1816 29.1904 64.1065 37.0189C61.0313 44.8474 53.7261 49.0571 47.9184 46.7757C42.1106 44.4944 39.6237 36.4382 42.6989 28.6097C45.774 20.7811 53.0792 16.5714 58.8869 18.8528Z" fill="#EDEDED" :stroke="primaryColor"/>
+            <path d="M74.8869 19.8528C80.6947 22.1342 83.1816 30.1904 80.1065 38.0189C77.0313 45.8474 69.7261 50.0571 63.9184 47.7757C58.1106 45.4944 55.6237 37.4382 58.6989 29.6097C61.774 21.7811 69.0792 17.5714 74.8869 19.8528Z" fill="#EDEDED" :stroke="primaryColor"/>
           </svg>
           <svg class="basket" width="84" height="50" viewBox="0 0 84 50" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="7.95312" y="15.5" width="68" height="6" rx="3" fill="#D9D9D9" stroke="black"/>
-            <rect x="15.9531" y="45.5" width="51" height="4" rx="2" fill="#D9D9D9" stroke="black"/>
-            <path d="M68.6111 39.5706L73.4531 21.5H9.02234L13.8643 39.5706C14.8015 43.068 17.9709 45.5 21.5917 45.5H60.8837C64.5046 45.5 67.674 43.068 68.6111 39.5706Z" fill="#7F7F7F" stroke="black"/>
-            <rect x="0.953125" y="0.5" width="82" height="17" rx="8.5" fill="#B1B1B1" stroke="black"/>
+            <rect x="7.95312" y="15.5" width="68" height="6" rx="3" fill="#D9D9D9" :stroke="primaryColor"/>
+            <rect x="15.9531" y="45.5" width="51" height="4" rx="2" fill="#D9D9D9" :stroke="primaryColor"/>
+            <path d="M68.6111 39.5706L73.4531 21.5H9.02234L13.8643 39.5706C14.8015 43.068 17.9709 45.5 21.5917 45.5H60.8837C64.5046 45.5 67.674 43.068 68.6111 39.5706Z" fill="#7F7F7F" :stroke="primaryColor"/>
+            <rect x="0.953125" y="0.5" width="82" height="17" rx="8.5" fill="#B1B1B1" :stroke="primaryColor"/>
           </svg>
           <div class="egg-count">
             <div class="egg-count-text">
@@ -228,7 +261,7 @@ onUnmounted(() => {
           xmlns="http://www.w3.org/2000/svg"
           :style="{ left: draggedEgg.x + 'px', top: draggedEgg.y + 'px' }"
         >
-          <path d="M12.4531 0.5C18.6929 0.5 23.9531 7.08915 23.9531 15.5C23.9531 23.9108 18.6929 30.5 12.4531 30.5C6.21334 30.5 0.953125 23.9108 0.953125 15.5C0.953125 7.08915 6.21334 0.5 12.4531 0.5Z" fill="#EDEDED" stroke="black"/>
+          <path d="M12.4531 0.5C18.6929 0.5 23.9531 7.08915 23.9531 15.5C23.9531 23.9108 18.6929 30.5 12.4531 30.5C6.21334 30.5 0.953125 23.9108 0.953125 15.5C0.953125 7.08915 6.21334 0.5 12.4531 0.5Z" fill="#EDEDED" :stroke="primaryColor"/>
         </svg>
       </div>
     </div>
@@ -256,6 +289,8 @@ onUnmounted(() => {
     --off-white: #EDEDED;
     --header-height: 33px;
     --line-width: 3px;
+    --primary-color: black;
+    /* --primary-color: #a00; */
   }
 
   .fancy-border {
@@ -278,20 +313,20 @@ onUnmounted(() => {
         to bottom,
         var(--fancy-border-bg) 0%,
         var(--fancy-border-bg) 20%,
-        black 20%,
-        black 32.5%,
+        var(--primary-color) 20%,
+        var(--primary-color) 32.5%,
         var(--fancy-border-bg) 32.5%,
         var(--fancy-border-bg) 43.75%,
-        black 43.75%,
-        black 56.25%,
+        var(--primary-color) 43.75%,
+        var(--primary-color) 56.25%,
         var(--fancy-border-bg) 56.25%,
         var(--fancy-border-bg) 67.5%,
-        black 67.5%,
-        black 80%,
+        var(--primary-color) 67.5%,
+        var(--primary-color) 80%,
         var(--fancy-border-bg) 80%,
         var(--fancy-border-bg) 100%
       );
-    border: var(--line-width) solid black;
+    border: var(--line-width) solid var(--primary-color);
   }
 
   header {
@@ -349,9 +384,9 @@ onUnmounted(() => {
     grid-template-columns: 1fr;
     justify-content: center;
     justify-items: center;
-    border-left: var(--line-width) solid black;
-    border-right: var(--line-width) solid black;
-    border-bottom: var(--line-width) solid black;
+    border-left: var(--line-width) solid var(--primary-color);
+    border-right: var(--line-width) solid var(--primary-color);
+    border-bottom: var(--line-width) solid var(--primary-color);
     border-bottom-right-radius: 10px;
     border-bottom-left-radius: 10px;
   }
@@ -363,6 +398,7 @@ onUnmounted(() => {
     margin: 0;
     padding: 0;
     align-self: center;
+    color: var(--primary-color);
   }
 
   .volume-area {
@@ -418,6 +454,8 @@ onUnmounted(() => {
     font-size: 12px;
     font-family: 'Press Start 2P', monospace;
     letter-spacing: 0.5px;
+    color: var(--primary-color);
+    font-weight: bold;
   }
 
   .draggable-egg {
