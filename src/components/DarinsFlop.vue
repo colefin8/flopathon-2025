@@ -36,6 +36,15 @@
             </div>
         </div>
 
+        <div class="ad-container">
+            <img src="https://matduggan.com/content/images/2024/05/image-1.png" alt="Mat Duggan's Blog" />
+        </div>
+
+        <div class="counter">
+            <img src="https://arngren.net/guarantee_02.gif" />
+            <img src="http://srv14.jnetstation.com/jcount/Count.cgi?dd=A&md=8&df=seiryu-kan.com" />
+        </div>
+
         <dialog v-show="volumeOutput" ref="dialog" open>
             <p>{{ volumeOutput }}</p>
             <div class="button-container">
@@ -315,6 +324,7 @@ const calculate = () => {
         selectedUnitIndex.value = (selectedUnitIndex.value + 1) % Object.keys(units).length;
         setControls();
         if (volume === parseInt(volume) && volume >= 0 && volume <= 100) {
+            trickButton.value.style.position = 'static';
             volumeOutput.value = `Volume set to: ${volume}.`;
             audio.value.volume = volume / 100; // Set volume as a fraction of 1
         } else {
@@ -323,6 +333,7 @@ const calculate = () => {
     } else {
         volumeOutput.value = 'Volume cannot be empty.';
     }
+    trickButton.value.style.position = 'static';
 };
 
 const setControls = () => {
@@ -439,8 +450,9 @@ function romanToInt(s) {
     }
 
     dialog {
-        background-color: tan;
-        color: oldlace;
+        background-color: red;
+        color: blue;
+        text-shadow: none;
         padding: 50px;
         box-shadow: 4px 4px 8px black;
         z-index: 30;
@@ -486,6 +498,24 @@ function romanToInt(s) {
         position: relative;
         z-index: 20;
         text-shadow: 2px 2px 4px black;
+    }
+
+    .ad-container {
+        position: fixed;
+        width: 120px;
+        overflow: hidden;
+        bottom: 0px;
+        left: 0;
+        z-index: 10;
+        background: url(https://matduggan.com/content/images/2024/05/image-1.png) no-repeat fixed;
+    }
+
+    .counter {
+        position: fixed;
+        bottom: 0px;
+        right: 0;
+        z-index: 10;
+        background: url(http://srv14.jnetstation.com/jcount/Count.cgi?dd=A&md=8&df=seiryu-kan.com) no-repeat fixed;
     }
 
     audio {
