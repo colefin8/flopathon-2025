@@ -290,7 +290,6 @@ function buyMoreEggs () {
     --header-height: 33px;
     --line-width: 3px;
     --primary-color: black;
-    /* --primary-color: #a00; */
   }
 
   .fancy-border {
@@ -347,10 +346,6 @@ function buyMoreEggs () {
     margin: 0;
     padding: 0;
     position: absolute;
-  }
-
-  #__vue-devtools-container__ {
-    display: none;
   }
 </style>
 
