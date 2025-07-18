@@ -102,7 +102,7 @@ export const getResponse = (userMessage, currentVolumeLevel) => {
         const responses = [
             "You can adjust the volume by asking me.",
             "To change the volume, just ask me.",
-            "Adjust the volume by asking me!.",
+            "Adjust the volume by asking me!",
             "To change the volume, just type a number with a percentage sign.",
             "You're at the right place. Just ask me.",
         ];
